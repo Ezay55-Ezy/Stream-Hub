@@ -1,34 +1,42 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
 import { seriesTable, categoriesTable } from "@workspace/db";
-import { eq, desc, ilike, or } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
+import { telegramClient } from "../telegram-client.js";
 
 const router = Router();
+
+// Shared select shape
+function seriesSelect() {
+  return {
+    id: seriesTable.id,
+    title: seriesTable.title,
+    description: seriesTable.description,
+    posterUrl: seriesTable.posterUrl,
+    downloadUrl: seriesTable.downloadUrl,
+    telegramFileId: seriesTable.telegramFileId,
+    fileSize: seriesTable.fileSize,
+    duration: seriesTable.duration,
+    categoryId: seriesTable.categoryId,
+    categoryName: categoriesTable.name,
+    createdAt: seriesTable.createdAt,
+  };
+}
+
+function toJson(r: { createdAt: Date; [k: string]: unknown }) {
+  return { ...r, createdAt: r.createdAt.toISOString() };
+}
 
 // GET /api/series
 router.get("/", async (req, res) => {
   try {
     const { categoryId, search } = req.query;
 
-    let query = db
-      .select({
-        id: seriesTable.id,
-        title: seriesTable.title,
-        description: seriesTable.description,
-        posterUrl: seriesTable.posterUrl,
-        downloadUrl: seriesTable.downloadUrl,
-        telegramFileId: seriesTable.telegramFileId,
-        fileSize: seriesTable.fileSize,
-        duration: seriesTable.duration,
-        categoryId: seriesTable.categoryId,
-        categoryName: categoriesTable.name,
-        createdAt: seriesTable.createdAt,
-      })
+    const rows = await db
+      .select(seriesSelect())
       .from(seriesTable)
       .leftJoin(categoriesTable, eq(seriesTable.categoryId, categoriesTable.id))
       .orderBy(desc(seriesTable.createdAt));
-
-    const rows = await query;
 
     let filtered = rows;
     if (categoryId) {
@@ -39,12 +47,7 @@ router.get("/", async (req, res) => {
       filtered = filtered.filter((r) => r.title.toLowerCase().includes(q));
     }
 
-    res.json(
-      filtered.map((r) => ({
-        ...r,
-        createdAt: r.createdAt.toISOString(),
-      }))
-    );
+    res.json(filtered.map(toJson));
   } catch (err) {
     req.log.error({ err }, "Failed to list series");
     res.status(500).json({ error: "Internal server error" });
@@ -55,19 +58,7 @@ router.get("/", async (req, res) => {
 router.get("/featured", async (req, res) => {
   try {
     const rows = await db
-      .select({
-        id: seriesTable.id,
-        title: seriesTable.title,
-        description: seriesTable.description,
-        posterUrl: seriesTable.posterUrl,
-        downloadUrl: seriesTable.downloadUrl,
-        telegramFileId: seriesTable.telegramFileId,
-        fileSize: seriesTable.fileSize,
-        duration: seriesTable.duration,
-        categoryId: seriesTable.categoryId,
-        categoryName: categoriesTable.name,
-        createdAt: seriesTable.createdAt,
-      })
+      .select(seriesSelect())
       .from(seriesTable)
       .leftJoin(categoriesTable, eq(seriesTable.categoryId, categoriesTable.id))
       .orderBy(desc(seriesTable.createdAt))
@@ -77,9 +68,7 @@ router.get("/featured", async (req, res) => {
       res.status(404).json({ error: "No series found" });
       return;
     }
-
-    const r = rows[0];
-    res.json({ ...r, createdAt: r.createdAt.toISOString() });
+    res.json(toJson(rows[0]));
   } catch (err) {
     req.log.error({ err }, "Failed to get featured series");
     res.status(500).json({ error: "Internal server error" });
@@ -90,27 +79,31 @@ router.get("/featured", async (req, res) => {
 router.get("/recent", async (req, res) => {
   try {
     const rows = await db
-      .select({
-        id: seriesTable.id,
-        title: seriesTable.title,
-        description: seriesTable.description,
-        posterUrl: seriesTable.posterUrl,
-        downloadUrl: seriesTable.downloadUrl,
-        telegramFileId: seriesTable.telegramFileId,
-        fileSize: seriesTable.fileSize,
-        duration: seriesTable.duration,
-        categoryId: seriesTable.categoryId,
-        categoryName: categoriesTable.name,
-        createdAt: seriesTable.createdAt,
-      })
+      .select(seriesSelect())
       .from(seriesTable)
       .leftJoin(categoriesTable, eq(seriesTable.categoryId, categoriesTable.id))
       .orderBy(desc(seriesTable.createdAt))
       .limit(10);
 
-    res.json(rows.map((r) => ({ ...r, createdAt: r.createdAt.toISOString() })));
+    res.json(rows.map(toJson));
   } catch (err) {
     req.log.error({ err }, "Failed to get recent series");
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// POST /api/series/sync  — bulk import from Saved Messages
+router.post("/sync", async (req, res) => {
+  try {
+    const { authenticated } = telegramClient.getAuthStatus();
+    if (!authenticated) {
+      res.status(401).json({ error: "Not authenticated" });
+      return;
+    }
+    const result = await telegramClient.syncSavedMessages();
+    res.json(result);
+  } catch (err) {
+    req.log.error({ err }, "Sync failed");
     res.status(500).json({ error: "Internal server error" });
   }
 });
@@ -125,19 +118,7 @@ router.get("/:id", async (req, res) => {
     }
 
     const rows = await db
-      .select({
-        id: seriesTable.id,
-        title: seriesTable.title,
-        description: seriesTable.description,
-        posterUrl: seriesTable.posterUrl,
-        downloadUrl: seriesTable.downloadUrl,
-        telegramFileId: seriesTable.telegramFileId,
-        fileSize: seriesTable.fileSize,
-        duration: seriesTable.duration,
-        categoryId: seriesTable.categoryId,
-        categoryName: categoriesTable.name,
-        createdAt: seriesTable.createdAt,
-      })
+      .select(seriesSelect())
       .from(seriesTable)
       .leftJoin(categoriesTable, eq(seriesTable.categoryId, categoriesTable.id))
       .where(eq(seriesTable.id, id))
@@ -147,9 +128,7 @@ router.get("/:id", async (req, res) => {
       res.status(404).json({ error: "Not found" });
       return;
     }
-
-    const r = rows[0];
-    res.json({ ...r, createdAt: r.createdAt.toISOString() });
+    res.json(toJson(rows[0]));
   } catch (err) {
     req.log.error({ err }, "Failed to get series by id");
     res.status(500).json({ error: "Internal server error" });

@@ -9,6 +9,35 @@ export interface HealthStatus {
   status: string;
 }
 
+export interface AuthStatus {
+  authenticated: boolean;
+  /** @nullable */
+  phone?: string | null;
+}
+
+export interface PhoneSendInput {
+  phone: string;
+}
+
+export interface CodeSendResult {
+  phoneCodeHash: string;
+}
+
+export interface PhoneVerifyInput {
+  phone: string;
+  phoneCodeHash: string;
+  code: string;
+}
+
+export interface AuthVerifyResult {
+  session: string;
+}
+
+export interface SyncResult {
+  added: number;
+  total: number;
+}
+
 export interface Series {
   id: number;
   title: string;

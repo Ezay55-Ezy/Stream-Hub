@@ -9,11 +9,45 @@ import * as zod from 'zod';
 
 
 /**
- * Returns server health status
  * @summary Health check
  */
 export const HealthCheckResponse = zod.object({
   "status": zod.string()
+})
+
+
+/**
+ * @summary Check whether the Telegram session is authenticated
+ */
+export const GetAuthStatusResponse = zod.object({
+  "authenticated": zod.boolean(),
+  "phone": zod.string().nullish()
+})
+
+
+/**
+ * @summary Send Telegram verification code to a phone number
+ */
+export const SendAuthCodeBody = zod.object({
+  "phone": zod.string()
+})
+
+export const SendAuthCodeResponse = zod.object({
+  "phoneCodeHash": zod.string()
+})
+
+
+/**
+ * @summary Verify OTP code and establish a session
+ */
+export const VerifyAuthCodeBody = zod.object({
+  "phone": zod.string(),
+  "phoneCodeHash": zod.string(),
+  "code": zod.string()
+})
+
+export const VerifyAuthCodeResponse = zod.object({
+  "session": zod.string()
 })
 
 
@@ -76,6 +110,15 @@ export const GetRecentSeriesResponseItem = zod.object({
   "createdAt": zod.string()
 })
 export const GetRecentSeriesResponse = zod.array(GetRecentSeriesResponseItem)
+
+
+/**
+ * @summary Bulk-import video files from Telegram Saved Messages
+ */
+export const SyncSavedMessagesResponse = zod.object({
+  "added": zod.number(),
+  "total": zod.number()
+})
 
 
 /**

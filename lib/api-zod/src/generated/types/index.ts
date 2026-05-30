@@ -6,7 +6,13 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from './authStatus';
+export * from './authVerifyResult';
 export * from './category';
+export * from './codeSendResult';
 export * from './healthStatus';
 export * from './listSeriesParams';
+export * from './phoneSendInput';
+export * from './phoneVerifyInput';
 export * from './series';
+export * from './syncResult';

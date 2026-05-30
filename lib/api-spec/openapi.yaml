@@ -14,13 +14,14 @@ tags:
     description: Series and video operations
   - name: categories
     description: Category operations
+  - name: auth
+    description: Telegram authentication
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -28,6 +29,61 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /auth/status:
+    get:
+      operationId: getAuthStatus
+      tags: [auth]
+      summary: Check whether the Telegram session is authenticated
+      responses:
+        "200":
+          description: Auth status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthStatus"
+
+  /auth/send-code:
+    post:
+      operationId: sendAuthCode
+      tags: [auth]
+      summary: Send Telegram verification code to a phone number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PhoneSendInput"
+      responses:
+        "200":
+          description: Code sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CodeSendResult"
+        "400":
+          description: Bad request
+
+  /auth/verify-code:
+    post:
+      operationId: verifyAuthCode
+      tags: [auth]
+      summary: Verify OTP code and establish a session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PhoneVerifyInput"
+      responses:
+        "200":
+          description: Verified — session active
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthVerifyResult"
+        "400":
+          description: Invalid code or request
 
   /series:
     get:
@@ -85,6 +141,21 @@ paths:
                 items:
                   $ref: "#/components/schemas/Series"
 
+  /series/sync:
+    post:
+      operationId: syncSavedMessages
+      tags: [series]
+      summary: Bulk-import video files from Telegram Saved Messages
+      responses:
+        "200":
+          description: Sync complete
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SyncResult"
+        "401":
+          description: Not authenticated
+
   /series/{id}:
     get:
       operationId: getSeriesById
@@ -125,11 +196,60 @@ components:
   schemas:
     HealthStatus:
       type: object
+      required: [status]
       properties:
         status:
           type: string
-      required:
-        - status
+
+    AuthStatus:
+      type: object
+      required: [authenticated]
+      properties:
+        authenticated:
+          type: boolean
+        phone:
+          type: ["string", "null"]
+
+    PhoneSendInput:
+      type: object
+      required: [phone]
+      properties:
+        phone:
+          type: string
+
+    CodeSendResult:
+      type: object
+      required: [phoneCodeHash]
+      properties:
+        phoneCodeHash:
+          type: string
+
+    PhoneVerifyInput:
+      type: object
+      required: [phone, phoneCodeHash, code]
+      properties:
+        phone:
+          type: string
+        phoneCodeHash:
+          type: string
+        code:
+          type: string
+
+    AuthVerifyResult:
+      type: object
+      required: [session]
+      properties:
+        session:
+          type: string
+
+    SyncResult:
+      type: object
+      required: [added, total]
+      properties:
+        added:
+          type: integer
+        total:
+          type: integer
 
     Series:
       type: object
