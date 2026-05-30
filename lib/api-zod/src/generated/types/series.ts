@@ -5,9 +5,6 @@
  * StreamGram API - Telegram channel video streaming
  * OpenAPI spec version: 0.1.0
  */
-export interface HealthStatus {
-  status: string;
-}
 
 export interface Series {
   id: number;
@@ -27,25 +24,3 @@ export interface Series {
   categoryName?: string | null;
   createdAt: string;
 }
-
-export interface Category {
-  id: number;
-  name: string;
-  seriesCount: number;
-}
-
-export type ListSeriesParams = {
-categoryId?: number;
-search?: string;
-limit?: number;
-offset?: number;
-};
-
-export type GetRecentSeriesParams = {
-limit?: number;
-};
-
-export type GetSeriesByCategoryParams = {
-limit?: number;
-};
-

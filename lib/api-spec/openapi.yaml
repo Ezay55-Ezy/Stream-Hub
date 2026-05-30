@@ -3,13 +3,17 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: StreamGram API - Telegram channel video streaming
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: series
+    description: Series and video operations
+  - name: categories
+    description: Category operations
 paths:
   /healthz:
     get:
@@ -24,6 +28,145 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /series:
+    get:
+      operationId: listSeries
+      tags: [series]
+      summary: List all series
+      parameters:
+        - name: categoryId
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 50
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+      responses:
+        "200":
+          description: List of series
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Series"
+
+  /series/featured:
+    get:
+      operationId: getFeaturedSeries
+      tags: [series]
+      summary: Get featured series for hero banner
+      responses:
+        "200":
+          description: Featured series
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Series"
+        "404":
+          description: No series found
+
+  /series/recent:
+    get:
+      operationId: getRecentSeries
+      tags: [series]
+      summary: Get recently added series
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+      responses:
+        "200":
+          description: Recently added series
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Series"
+
+  /series/{id}:
+    get:
+      operationId: getSeriesById
+      tags: [series]
+      summary: Get a single series by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Series detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Series"
+        "404":
+          description: Not found
+
+  /categories:
+    get:
+      operationId: listCategories
+      tags: [categories]
+      summary: List all categories
+      responses:
+        "200":
+          description: List of categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Category"
+
+  /categories/{id}/series:
+    get:
+      operationId: getSeriesByCategory
+      tags: [categories]
+      summary: Get series for a specific category
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: Series in category
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Series"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +177,40 @@ components:
       required:
         - status
 
+    Series:
+      type: object
+      required: [id, title, posterUrl, downloadUrl, telegramFileId, createdAt]
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: ["string", "null"]
+        posterUrl:
+          type: string
+        downloadUrl:
+          type: string
+        telegramFileId:
+          type: string
+        fileSize:
+          type: ["integer", "null"]
+        duration:
+          type: ["integer", "null"]
+        categoryId:
+          type: ["integer", "null"]
+        categoryName:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    Category:
+      type: object
+      required: [id, name, seriesCount]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        seriesCount:
+          type: integer
