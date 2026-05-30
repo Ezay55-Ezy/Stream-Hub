@@ -16,10 +16,6 @@ export interface VideoDownloadState {
   error: string | null;
 }
 
-/**
- * Manages a single video download with robust pause/resume support.
- * Accepts a seriesName parameter to dynamically rename the download file on completion.
- */
 export function useVideoDownload(
   seriesId: number,
   seriesName: string = "Series",
@@ -33,17 +29,17 @@ export function useVideoDownload(
   const resumableRef = useRef<FileSystem.DownloadResumable | null>(null);
   const pauseStateRef = useRef<FileSystem.DownloadPauseState | null>(null);
 
-  // Auto-resolve backend domain configuration with proper fallback
   const domain =
     process.env["EXPO_PUBLIC_DOMAIN"] || "stream-hub-tobonezra159.replit.app";
   const downloadUrl = domain.startsWith("http")
     ? `${domain}/api/download/${seriesId}`
     : `https://${domain}/api/download/${seriesId}`;
 
-  // Temporary local cache URI used while downloading
-  const fileUri = `${FileSystem.cacheDirectory}sg_${seriesId}.mp4`;
+  // Speed/Format Rule: Prioritize .mkv over other extensions. Defaults to .mkv if none found.
+  const match = seriesName.match(/\.(mkv|mp4|avi|mov|wmv|flv|webm)/i);
+  const extension = match ? match[0] : ".mkv";
 
-  // Target user context phone number header for session mapping
+  const fileUri = `${FileSystem.cacheDirectory}sg_${seriesId}${extension}`;
   const userPhoneHeader = "+254700000000";
 
   const onProgress = useCallback(
@@ -66,12 +62,15 @@ export function useVideoDownload(
       try {
         const { status } = await MediaLibrary.requestPermissionsAsync();
         if (status === "granted") {
-          // Clean characters out of the title to avoid file save issues
           const cleanName =
-            seriesName.replace(/[^a-zA-Z0-9\s-_]/g, "").trim() || "Video";
-          const customDestinationUri = `${FileSystem.documentDirectory}${cleanName}.mp4`;
+            seriesName.replace(/[^\w\s.-]/g, "").trim() || "Video";
+          const finalFileName = cleanName.endsWith(extension)
+            ? cleanName
+            : `${cleanName}${extension}`;
 
-          // Force rename the file from sg_XX.mp4 to its true Title!
+          // Use local cache directories to bypass native OS copy volume restrictions
+          const customDestinationUri = `${FileSystem.cacheDirectory}${finalFileName}`;
+
           await FileSystem.moveAsync({
             from: uri,
             to: customDestinationUri,
@@ -92,24 +91,29 @@ export function useVideoDownload(
               await MediaLibrary.createAlbumAsync(albumName, asset, false);
             }
           }
-          alert(
-            `"${cleanName}" successfully saved directly to your phone local gallery!`,
-          );
+          alert("Success! Video file downloaded and saved cleanly to gallery.");
+          setState({ status: "complete", progress: 100, error: null });
         }
       } catch (err) {
-        console.error("Failed to export media assets:", err);
+        console.error(
+          "Native export failed, executing fallback mechanism:",
+          err,
+        );
+        // Fallback path: Attempt saving the file stream source directly if custom directory moves fail
+        try {
+          await MediaLibrary.createAssetAsync(uri);
+          alert("Saved successfully directly to your device gallery!");
+          setState({ status: "complete", progress: 100, error: null });
+        } catch (innerErr) {
+          setState((prev) => ({
+            ...prev,
+            status: "error",
+            error: "Gallery save failed",
+          }));
+        }
       }
-
-      // Clean temporary cache files cleanly on pipeline completion if it remains
-      try {
-        await FileSystem.deleteAsync(uri, { idempotent: true });
-      } catch (e) {
-        // already moved or deleted
-      }
-
-      setState({ status: "complete", progress: 100, error: null });
     },
-    [seriesName],
+    [seriesName, extension],
   );
 
   const start = useCallback(async () => {
@@ -129,26 +133,12 @@ export function useVideoDownload(
       const result = await resumable.downloadAsync();
       if (result && (result.status === 200 || result.status === 206)) {
         await saveToLibrary(result.uri);
-      } else {
-        setState((prev) => ({
-          ...prev,
-          status: "error",
-          error: `Unexpected status ${result?.status ?? "—"}`,
-        }));
       }
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
-      if (
-        msg.includes("cancelled") ||
-        msg.includes("aborted") ||
-        msg.includes("stopped")
-      ) {
-        return;
-      }
+    } catch (err) {
       setState((prev) => ({
         ...prev,
         status: "error",
-        error: msg || "Download failed",
+        error: "Download failed",
       }));
     }
   }, [seriesId, downloadUrl, fileUri, onProgress, saveToLibrary]);
@@ -158,9 +148,7 @@ export function useVideoDownload(
       try {
         const ps = await resumableRef.current.pauseAsync();
         if (ps) pauseStateRef.current = ps;
-      } catch {
-        // Fallback catch block
-      }
+      } catch {}
     }
     setState((prev) => ({ ...prev, status: "paused" }));
   }, []);
@@ -168,12 +156,9 @@ export function useVideoDownload(
   const resume = useCallback(async () => {
     const ps = pauseStateRef.current;
     if (!ps) {
-      await start();
-      return;
+      return start();
     }
-
     setState((prev) => ({ ...prev, status: "downloading" }));
-
     const resumable = FileSystem.createDownloadResumable(
       ps.url,
       ps.fileUri,
@@ -182,24 +167,16 @@ export function useVideoDownload(
       ps.resumeData,
     );
     resumableRef.current = resumable;
-
     try {
       const result = await resumable.downloadAsync();
       if (result && (result.status === 200 || result.status === 206)) {
         await saveToLibrary(result.uri);
-      } else {
-        setState((prev) => ({
-          ...prev,
-          status: "error",
-          error: "Resume failed",
-        }));
       }
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
+    } catch {
       setState((prev) => ({
         ...prev,
         status: "error",
-        error: msg || "Resume failed",
+        error: "Resume failed",
       }));
     }
   }, [start, onProgress, saveToLibrary]);
@@ -208,19 +185,12 @@ export function useVideoDownload(
     if (resumableRef.current) {
       try {
         await resumableRef.current.cancelAsync();
-      } catch {
-        // ignore
-      }
-      resumableRef.current = null;
+      } catch {}
     }
-    pauseStateRef.current = null;
-    await FileSystem.deleteAsync(fileUri, { idempotent: true });
     setState({ status: "idle", progress: 0, error: null });
-  }, [fileUri]);
+  }, []);
 
   const reset = useCallback(() => {
-    resumableRef.current = null;
-    pauseStateRef.current = null;
     setState({ status: "idle", progress: 0, error: null });
   }, []);
 
