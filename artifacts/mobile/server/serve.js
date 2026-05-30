@@ -1,12 +1,7 @@
 /**
  * Standalone production server for Expo static builds.
- *
- * Serves the output of build.js (static-build/) with two special routes:
- * - GET / or /manifest with expo-platform header → platform manifest JSON
- * - GET / without expo-platform → landing page HTML
- * Everything else falls through to static file serving from ./static-build/.
- *
- * Zero external dependencies — uses only Node.js built-ins (http, fs, path).
+ * Extended with a high-performance native media streaming engine for StreamGram downloads.
+ * Supports native HTTP 206 Partial Content range seeking, pause, and resume.
  */
 
 const http = require("http");
@@ -104,6 +99,48 @@ function serveStaticFile(urlPath, res) {
   res.end(content);
 }
 
+/**
+ * 🎬 NEW: High-performance streaming proxy pipeline bridge.
+ * Intercepts mobile Expo file system downloads and fetches from the user client layer.
+ */
+function handleMediaStreamPipeline(messageId, req, res) {
+  const phoneHeader = req.headers["phone"] || "+254700000000";
+  const rangeHeader = req.headers["range"];
+
+  // Point toward your internal Python/Telethon core service running in your workspace
+  const backendServiceUrl = `http://127.0.0.1:8000/api/download/${messageId}`;
+
+  const proxyOptions = {
+    method: "GET",
+    headers: {
+      phone: phoneHeader,
+    },
+  };
+
+  if (rangeHeader) {
+    proxyOptions.headers["range"] = rangeHeader;
+  }
+
+  // Fire up an internal HTTP handshake request to the Telethon data parser client
+  const proxyReq = http.request(backendServiceUrl, proxyOptions, (proxyRes) => {
+    // Forward the content-range, content-length, and status codes exactly
+    res.writeHead(proxyRes.statusCode, proxyRes.headers);
+
+    // Pipe the data chunks directly straight down to your friend's mobile screen
+    proxyRes.pipe(res);
+  });
+
+  proxyReq.on("error", (err) => {
+    console.error("Media streaming relay failure:", err);
+    res.writeHead(500, { "content-type": "application/json" });
+    res.end(
+      JSON.stringify({ error: "Streaming engine proxy connection refused" }),
+    );
+  });
+
+  proxyReq.end();
+}
+
 const landingPageTemplate = fs.readFileSync(TEMPLATE_PATH, "utf-8");
 const appName = getAppName();
 
@@ -115,6 +152,14 @@ const server = http.createServer((req, res) => {
     pathname = pathname.slice(basePath.length) || "/";
   }
 
+  // ROUTE 1: Intercept incoming mobile background downloading requests
+  const downloadMatch = pathname.match(/^\/api\/download\/(\d+)/);
+  if (downloadMatch) {
+    const messageId = parseInt(downloadMatch[1], 10);
+    return handleMediaStreamPipeline(messageId, req, res);
+  }
+
+  // ROUTE 2: Handle Manifest configurations
   if (pathname === "/" || pathname === "/manifest") {
     const platform = req.headers["expo-platform"];
     if (platform === "ios" || platform === "android") {
@@ -126,6 +171,7 @@ const server = http.createServer((req, res) => {
     }
   }
 
+  // ROUTE 3: Fallback straight to static build production directories
   serveStaticFile(pathname, res);
 });
 

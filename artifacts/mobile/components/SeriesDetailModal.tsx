@@ -27,7 +27,8 @@ interface Props {
 function formatFileSize(bytes: number | null | undefined): string {
   if (!bytes) return "";
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
-  if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  if (bytes < 1024 * 1024 * 1024)
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
 }
 
@@ -50,7 +51,11 @@ export function SeriesDetailModal({ seriesId, onClose }: Props) {
     },
   });
 
-  const download = useVideoDownload(series?.id ?? 0);
+  // Fixed: Included the dynamic series title safely alongside the numeric ID profile
+  const download = useVideoDownload(
+    series?.id ?? 0,
+    series?.title || "Series_Movie",
+  );
 
   // Reset download state whenever a different series is opened
   const prevSeriesId = useRef<number | null>(null);
@@ -97,14 +102,18 @@ export function SeriesDetailModal({ seriesId, onClose }: Props) {
   }, [download]);
 
   const handleCancelDownload = useCallback(async () => {
-    Alert.alert("Cancel Download", "Are you sure you want to cancel this download?", [
-      { text: "Keep Downloading", style: "cancel" },
-      {
-        text: "Cancel",
-        style: "destructive",
-        onPress: () => download.cancel(),
-      },
-    ]);
+    Alert.alert(
+      "Cancel Download",
+      "Are you sure you want to cancel this download?",
+      [
+        { text: "Keep Downloading", style: "cancel" },
+        {
+          text: "Cancel",
+          style: "destructive",
+          onPress: () => download.cancel(),
+        },
+      ],
+    );
   }, [download]);
 
   const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
@@ -115,17 +124,34 @@ export function SeriesDetailModal({ seriesId, onClose }: Props) {
       case "downloading":
         return { icon: "pause" as const, label: "Pause", color: "#f59e0b" };
       case "paused":
-        return { icon: "play" as const, label: "Resume", color: colors.primary };
+        return {
+          icon: "play" as const,
+          label: "Resume",
+          color: colors.primary,
+        };
       case "complete":
-        return { icon: "check-circle" as const, label: "Saved to Library", color: "#22c55e" };
+        return {
+          icon: "check-circle" as const,
+          label: "Saved to Library",
+          color: "#22c55e",
+        };
       case "error":
-        return { icon: "refresh-cw" as const, label: "Retry", color: "#ef4444" };
+        return {
+          icon: "refresh-cw" as const,
+          label: "Retry",
+          color: "#ef4444",
+        };
       default:
-        return { icon: "download" as const, label: "Download", color: colors.primary };
+        return {
+          icon: "download" as const,
+          label: "Download",
+          color: colors.primary,
+        };
     }
   })();
 
-  const isActive = download.status === "downloading" || download.status === "paused";
+  const isActive =
+    download.status === "downloading" || download.status === "paused";
 
   return (
     <Modal
@@ -161,14 +187,21 @@ export function SeriesDetailModal({ seriesId, onClose }: Props) {
                 />
               </>
             ) : (
-              <View style={[styles.posterImage, { backgroundColor: colors.card }]} />
+              <View
+                style={[styles.posterImage, { backgroundColor: colors.card }]}
+              />
             )}
           </View>
 
           {/* Details */}
           <View style={styles.details}>
             {isLoading ? (
-              <View style={[styles.titleSkeleton, { backgroundColor: colors.shimmer }]} />
+              <View
+                style={[
+                  styles.titleSkeleton,
+                  { backgroundColor: colors.shimmer },
+                ]}
+              />
             ) : (
               <Text style={[styles.title, { color: colors.foreground }]}>
                 {series?.title ?? ""}
@@ -178,7 +211,12 @@ export function SeriesDetailModal({ seriesId, onClose }: Props) {
             {/* Meta row */}
             <View style={styles.metaRow}>
               {series?.categoryName ? (
-                <View style={[styles.categoryBadge, { backgroundColor: colors.primary }]}>
+                <View
+                  style={[
+                    styles.categoryBadge,
+                    { backgroundColor: colors.primary },
+                  ]}
+                >
                   <Text style={styles.categoryText}>{series.categoryName}</Text>
                 </View>
               ) : null}
@@ -195,12 +233,22 @@ export function SeriesDetailModal({ seriesId, onClose }: Props) {
             </View>
 
             {series?.description ? (
-              <Text style={[styles.description, { color: "rgba(255,255,255,0.75)" }]}>
+              <Text
+                style={[
+                  styles.description,
+                  { color: "rgba(255,255,255,0.75)" },
+                ]}
+              >
                 {series.description}
               </Text>
             ) : (
               !isLoading && (
-                <Text style={[styles.description, { color: colors.mutedForeground }]}>
+                <Text
+                  style={[
+                    styles.description,
+                    { color: colors.mutedForeground },
+                  ]}
+                >
                   No description available.
                 </Text>
               )
@@ -210,7 +258,12 @@ export function SeriesDetailModal({ seriesId, onClose }: Props) {
             {download.status !== "idle" && download.status !== "complete" && (
               <View style={styles.progressSection}>
                 {/* Progress bar track */}
-                <View style={[styles.progressTrack, { backgroundColor: colors.border }]}>
+                <View
+                  style={[
+                    styles.progressTrack,
+                    { backgroundColor: colors.border },
+                  ]}
+                >
                   <Animated.View
                     style={[
                       styles.progressFill,
@@ -227,18 +280,31 @@ export function SeriesDetailModal({ seriesId, onClose }: Props) {
 
                 {/* Progress labels */}
                 <View style={styles.progressRow}>
-                  <Text style={[styles.progressPct, { color: btnConfig.color }]}>
+                  <Text
+                    style={[styles.progressPct, { color: btnConfig.color }]}
+                  >
                     {download.progress}%
                   </Text>
                   {isActive && (
-                    <TouchableOpacity onPress={handleCancelDownload} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                      <Text style={[styles.cancelLink, { color: colors.mutedForeground }]}>
+                    <TouchableOpacity
+                      onPress={handleCancelDownload}
+                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    >
+                      <Text
+                        style={[
+                          styles.cancelLink,
+                          { color: colors.mutedForeground },
+                        ]}
+                      >
                         Cancel
                       </Text>
                     </TouchableOpacity>
                   )}
                   {download.status === "error" && download.error ? (
-                    <Text style={[styles.errorText, { color: "#ef4444" }]} numberOfLines={1}>
+                    <Text
+                      style={[styles.errorText, { color: "#ef4444" }]}
+                      numberOfLines={1}
+                    >
                       {download.error}
                     </Text>
                   ) : null}
@@ -280,7 +346,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     alignItems: "center",
-    justifyContent: "center",
+    justify: "center",
   },
   heroContainer: { width: "100%", height: 380 },
   posterImage: { width: "100%", height: "100%" },
@@ -336,7 +402,7 @@ const styles = StyleSheet.create({
   progressRow: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
+    justify: "space-between",
   },
   progressPct: {
     fontSize: 13,
@@ -355,7 +421,7 @@ const styles = StyleSheet.create({
   downloadBtn: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
+    justify: "center",
     gap: 10,
     paddingVertical: 15,
     borderRadius: 6,
