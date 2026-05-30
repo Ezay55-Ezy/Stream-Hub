@@ -5,8 +5,40 @@ import { Icon, Label, NativeTabs } from "expo-router/unstable-native-tabs";
 import { SymbolView } from "expo-symbols";
 import { Feather } from "@expo/vector-icons";
 import React from "react";
-import { Platform, StyleSheet, View, useColorScheme } from "react-native";
+import { Platform, StyleSheet, View, useColorScheme, Text } from "react-native";
 import { useColors } from "@/hooks/useColors";
+import { useDownloadManager } from "@/contexts/DownloadManagerContext";
+
+function ActiveBadge() {
+  const colors = useColors();
+  const { downloads } = useDownloadManager();
+  const activeCount = downloads.filter(
+    (d) => d.status === "downloading" || d.status === "queued" || d.status === "merging" || d.status === "saving",
+  ).length;
+
+  if (activeCount === 0) return null;
+
+  return (
+    <View
+      style={{
+        position: "absolute",
+        top: -4,
+        right: -8,
+        backgroundColor: colors.primary,
+        borderRadius: 8,
+        minWidth: 16,
+        height: 16,
+        alignItems: "center",
+        justifyContent: "center",
+        paddingHorizontal: 3,
+      }}
+    >
+      <Text style={{ color: "#fff", fontSize: 10, fontFamily: "Inter_700Bold" }}>
+        {activeCount}
+      </Text>
+    </View>
+  );
+}
 
 function NativeTabLayout() {
   return (
@@ -15,6 +47,10 @@ function NativeTabLayout() {
         <Icon sf={{ default: "house", selected: "house.fill" }} />
         <Label>Home</Label>
       </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="downloads">
+        <Icon sf={{ default: "arrow.down.circle", selected: "arrow.down.circle.fill" }} />
+        <Label>Downloads</Label>
+      </NativeTabs.Trigger>
     </NativeTabs>
   );
 }
@@ -22,7 +58,6 @@ function NativeTabLayout() {
 function ClassicTabLayout() {
   const colors = useColors();
   const colorScheme = useColorScheme();
-  const isDark = colorScheme === "dark";
   const isIOS = Platform.OS === "ios";
   const isWeb = Platform.OS === "web";
 
@@ -66,6 +101,26 @@ function ClassicTabLayout() {
             ) : (
               <Feather name="home" size={22} color={color} />
             ),
+        }}
+      />
+      <Tabs.Screen
+        name="downloads"
+        options={{
+          title: "Downloads",
+          tabBarIcon: ({ color }) => (
+            <View>
+              {isIOS ? (
+                <SymbolView
+                  name="arrow.down.circle"
+                  tintColor={color}
+                  size={24}
+                />
+              ) : (
+                <Feather name="download-cloud" size={22} color={color} />
+              )}
+              <ActiveBadge />
+            </View>
+          ),
         }}
       />
     </Tabs>

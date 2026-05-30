@@ -51,20 +51,12 @@ export function SeriesDetailModal({ seriesId, onClose }: Props) {
     },
   });
 
-  // Fixed: Included the dynamic series title safely alongside the numeric ID profile
+  // Pass fileSize so the download manager can do parallel chunked downloading
   const download = useVideoDownload(
     series?.id ?? 0,
     series?.title || "Series_Movie",
+    series?.fileSize,
   );
-
-  // Reset download state whenever a different series is opened
-  const prevSeriesId = useRef<number | null>(null);
-  useEffect(() => {
-    if (seriesId !== null && seriesId !== prevSeriesId.current) {
-      if (prevSeriesId.current !== null) download.reset();
-      prevSeriesId.current = seriesId;
-    }
-  }, [seriesId]);
 
   // Animated progress bar width (0 → 1)
   const progressAnim = useRef(new Animated.Value(0)).current;
@@ -76,32 +68,30 @@ export function SeriesDetailModal({ seriesId, onClose }: Props) {
     }).start();
   }, [download.progress]);
 
-  const handleClose = useCallback(async () => {
-    if (download.status === "downloading") {
-      await download.pause();
-    }
+  // Close modal — download keeps running in background via global manager
+  const handleClose = useCallback(() => {
     onClose();
-  }, [download, onClose]);
+  }, [onClose]);
 
   const handleDownloadPress = useCallback(async () => {
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     switch (download.status) {
       case "idle":
       case "error":
-        await download.start();
+        download.start();
         break;
       case "downloading":
-        await download.pause();
+        download.pause();
         break;
       case "paused":
-        await download.resume();
+        download.resume();
         break;
       default:
         break;
     }
   }, [download]);
 
-  const handleCancelDownload = useCallback(async () => {
+  const handleCancelDownload = useCallback(() => {
     Alert.alert(
       "Cancel Download",
       "Are you sure you want to cancel this download?",
@@ -121,37 +111,31 @@ export function SeriesDetailModal({ seriesId, onClose }: Props) {
   // Dynamic button config based on download state
   const btnConfig = (() => {
     switch (download.status) {
+      case "queued":
+        return { icon: "clock" as const, label: "Queued…", color: "#6b7280" };
       case "downloading":
         return { icon: "pause" as const, label: "Pause", color: "#f59e0b" };
       case "paused":
-        return {
-          icon: "play" as const,
-          label: "Resume",
-          color: colors.primary,
-        };
+        return { icon: "play" as const, label: "Resume", color: colors.primary };
+      case "merging":
+        return { icon: "layers" as const, label: "Merging…", color: "#8b5cf6" };
+      case "saving":
+        return { icon: "save" as const, label: "Saving…", color: "#06b6d4" };
       case "complete":
-        return {
-          icon: "check-circle" as const,
-          label: "Saved to Library",
-          color: "#22c55e",
-        };
+        return { icon: "check-circle" as const, label: "Saved to Library", color: "#22c55e" };
       case "error":
-        return {
-          icon: "refresh-cw" as const,
-          label: "Retry",
-          color: "#ef4444",
-        };
+        return { icon: "refresh-cw" as const, label: "Retry", color: "#ef4444" };
       default:
-        return {
-          icon: "download" as const,
-          label: "Download",
-          color: colors.primary,
-        };
+        return { icon: "download" as const, label: "Download", color: colors.primary };
     }
   })();
 
   const isActive =
     download.status === "downloading" || download.status === "paused";
+  const isBusy =
+    download.status === "merging" || download.status === "saving" || download.status === "queued";
+  const showProgress =
+    download.status !== "idle" && download.status !== "complete";
 
   return (
     <Modal
@@ -254,8 +238,8 @@ export function SeriesDetailModal({ seriesId, onClose }: Props) {
               )
             )}
 
-            {/* ── Download section ───────────────────────────────────── */}
-            {download.status !== "idle" && download.status !== "complete" && (
+            {/* ── Download section ─────────────────────────────────────── */}
+            {showProgress && (
               <View style={styles.progressSection}>
                 {/* Progress bar track */}
                 <View
@@ -285,6 +269,11 @@ export function SeriesDetailModal({ seriesId, onClose }: Props) {
                   >
                     {download.progress}%
                   </Text>
+                  {download.speed && download.status === "downloading" && (
+                    <Text style={[styles.speedText, { color: colors.mutedForeground }]}>
+                      {download.speed}
+                    </Text>
+                  )}
                   {isActive && (
                     <TouchableOpacity
                       onPress={handleCancelDownload}
@@ -317,15 +306,22 @@ export function SeriesDetailModal({ seriesId, onClose }: Props) {
               style={[
                 styles.downloadBtn,
                 { backgroundColor: btnConfig.color },
-                !series && styles.btnDisabled,
+                (!series || isBusy) && styles.btnDisabled,
               ]}
               onPress={handleDownloadPress}
               activeOpacity={0.85}
-              disabled={!series || download.status === "complete"}
+              disabled={!series || download.status === "complete" || isBusy}
             >
               <Feather name={btnConfig.icon} size={18} color="#fff" />
               <Text style={styles.downloadBtnText}>{btnConfig.label}</Text>
             </TouchableOpacity>
+
+            {/* Hint: download continues in background */}
+            {(download.status === "downloading" || download.status === "queued") && (
+              <Text style={[styles.backgroundHint, { color: colors.mutedForeground }]}>
+                Download continues in the Downloads tab when you close this.
+              </Text>
+            )}
 
             <View style={{ height: bottomPad + 16 }} />
           </View>
@@ -346,7 +342,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     alignItems: "center",
-    justify: "center",
+    justifyContent: "center",
   },
   heroContainer: { width: "100%", height: 380 },
   posterImage: { width: "100%", height: "100%" },
@@ -402,11 +398,17 @@ const styles = StyleSheet.create({
   progressRow: {
     flexDirection: "row",
     alignItems: "center",
-    justify: "space-between",
+    gap: 8,
+    flexWrap: "wrap",
   },
   progressPct: {
     fontSize: 13,
     fontFamily: "Inter_700Bold",
+  },
+  speedText: {
+    fontSize: 12,
+    fontFamily: "Inter_400Regular",
+    flex: 1,
   },
   cancelLink: {
     fontSize: 12,
@@ -421,7 +423,7 @@ const styles = StyleSheet.create({
   downloadBtn: {
     flexDirection: "row",
     alignItems: "center",
-    justify: "center",
+    justifyContent: "center",
     gap: 10,
     paddingVertical: 15,
     borderRadius: 6,
@@ -432,5 +434,12 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontFamily: "Inter_700Bold",
     fontSize: 16,
+  },
+  backgroundHint: {
+    fontSize: 12,
+    fontFamily: "Inter_400Regular",
+    textAlign: "center",
+    marginTop: 10,
+    lineHeight: 16,
   },
 });
