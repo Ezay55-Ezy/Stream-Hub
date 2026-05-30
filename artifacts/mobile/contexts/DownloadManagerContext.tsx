@@ -3,13 +3,8 @@
  *
  * Global singleton that manages a queue of up to 2 concurrent parallel-chunk
  * downloads. Lives outside any modal so downloads survive modal close.
- *
- * Architecture:
- *  - Each download is split into CHUNK_COUNT (4) parallel HTTP Range requests
- *  - Chunks are written to separate temp files, then concatenated into one file
- *  - Maximum 2 files download simultaneously; others queue
- *  - MediaLibrary.createAssetAsync() is called only from cacheDirectory,
- *    avoiding cross-volume move errors
+ * * SECURITY FIX: Dynamically accepts and injects the active phone number into all
+ * network handshakes to accurately trigger Telegram validation challenges.
  */
 import React, {
   createContext,
@@ -46,6 +41,7 @@ export interface DownloadItem {
   progress: number; // 0–100
   error: string | null;
   speed: string | null; // e.g. "3.2 MB/s"
+  userPhone: string; // Tracks individual context
 }
 
 interface DownloadManagerContextValue {
@@ -53,6 +49,7 @@ interface DownloadManagerContextValue {
   enqueue: (
     id: number,
     title: string,
+    userPhone: string, // Injected authentication requirement
     fileSize?: number | null,
   ) => void;
   pause: (id: number) => void;
@@ -75,7 +72,8 @@ const DownloadManagerContext = createContext<DownloadManagerContextValue>({
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 function getDomain(): string {
-  const d = process.env["EXPO_PUBLIC_DOMAIN"] || "stream-hub-tobonezra159.replit.app";
+  const d =
+    process.env["EXPO_PUBLIC_DOMAIN"] || "stream-hub-tobonezra159.replit.app";
   return d.startsWith("http") ? d : `https://${d}`;
 }
 
@@ -91,8 +89,7 @@ function sanitizeFileName(title: string): string {
 function formatSpeed(bytesPerSec: number): string {
   if (bytesPerSec >= 1024 * 1024)
     return `${(bytesPerSec / (1024 * 1024)).toFixed(1)} MB/s`;
-  if (bytesPerSec >= 1024)
-    return `${(bytesPerSec / 1024).toFixed(0)} KB/s`;
+  if (bytesPerSec >= 1024) return `${(bytesPerSec / 1024).toFixed(0)} KB/s`;
   return `${bytesPerSec.toFixed(0)} B/s`;
 }
 
@@ -135,7 +132,10 @@ export function DownloadManagerProvider({
   const countActive = useCallback(
     (list: DownloadItem[]) =>
       list.filter(
-        (d) => d.status === "downloading" || d.status === "merging" || d.status === "saving",
+        (d) =>
+          d.status === "downloading" ||
+          d.status === "merging" ||
+          d.status === "saving",
       ).length,
     [],
   );
@@ -144,7 +144,7 @@ export function DownloadManagerProvider({
 
   const runDownload = useCallback(
     async (item: DownloadItem) => {
-      const { id, title, fileSize } = item;
+      const { id, title, fileSize, userPhone } = item;
       const ext = getExtension(title);
       const domain = getDomain();
       const url = `${domain}/api/download/${id}`;
@@ -152,25 +152,40 @@ export function DownloadManagerProvider({
       abortRefs.current.set(id, false);
       pausedRef.current.delete(id);
 
-      upsert(id, { status: "downloading", progress: 0, error: null, speed: null });
+      upsert(id, {
+        status: "downloading",
+        progress: 0,
+        error: null,
+        speed: null,
+      });
 
       try {
-        // ── Step 1: HEAD request to get Content-Length ─────────────────────
+        // ── Step 1: Request Sizing Handshake ─────────────────────
         let totalBytes = fileSize ?? 0;
-
-        if (!totalBytes) {
-          try {
-            const headInfo = await FileSystem.getInfoAsync(url);
-            // getInfoAsync won't give size for remote; fall back to 0 = non-chunked
-          } catch {}
-        }
 
         // If we know the total size, do parallel chunked download.
         // Otherwise fall back to a single-connection download.
         if (totalBytes > 0) {
-          await runChunkedDownload(id, url, totalBytes, ext, upsert, abortRefs, pausedRef);
+          await runChunkedDownload(
+            id,
+            url,
+            userPhone,
+            totalBytes,
+            ext,
+            upsert,
+            abortRefs,
+            pausedRef,
+          );
         } else {
-          await runSingleDownload(id, url, ext, upsert, abortRefs, pausedRef);
+          await runSingleDownload(
+            id,
+            url,
+            userPhone,
+            ext,
+            upsert,
+            abortRefs,
+            pausedRef,
+          );
         }
 
         if (abortRefs.current.get(id)) return; // cancelled
@@ -179,7 +194,6 @@ export function DownloadManagerProvider({
         upsert(id, { status: "saving", progress: 99, speed: null });
         await saveToLibrary(id, title, ext);
         upsert(id, { status: "complete", progress: 100, speed: null });
-
       } catch (err: any) {
         if (abortRefs.current.get(id)) return;
         const msg: string = err?.message ?? "Download failed";
@@ -192,7 +206,6 @@ export function DownloadManagerProvider({
       setDownloads((prev) => {
         const queued = prev.find((d) => d.status === "queued");
         if (queued && countActive(prev) < MAX_CONCURRENT) {
-          // Kick off async, don't await inside setState
           setTimeout(() => runDownload(queued), 0);
         }
         return prev;
@@ -204,7 +217,12 @@ export function DownloadManagerProvider({
   // ── Public API ────────────────────────────────────────────────────────────
 
   const enqueue = useCallback(
-    (id: number, title: string, fileSize?: number | null) => {
+    (
+      id: number,
+      title: string,
+      userPhone: string,
+      fileSize?: number | null,
+    ) => {
       setDownloads((prev) => {
         // Already tracked
         if (prev.find((d) => d.id === id)) return prev;
@@ -217,6 +235,7 @@ export function DownloadManagerProvider({
           progress: 0,
           error: null,
           speed: null,
+          userPhone, // Capture user context dynamically
         };
 
         const active = countActive(prev);
@@ -234,10 +253,13 @@ export function DownloadManagerProvider({
     [countActive, runDownload],
   );
 
-  const pause = useCallback((id: number) => {
-    pausedRef.current.add(id);
-    upsert(id, { status: "paused", speed: null });
-  }, [upsert]);
+  const pause = useCallback(
+    (id: number) => {
+      pausedRef.current.add(id);
+      upsert(id, { status: "paused", speed: null });
+    },
+    [upsert],
+  );
 
   const resume = useCallback(
     (id: number) => {
@@ -252,7 +274,6 @@ export function DownloadManagerProvider({
             d.id === id ? { ...d, status: "downloading" } : d,
           );
         }
-        // Re-queue
         return prev.map((d) => (d.id === id ? { ...d, status: "queued" } : d));
       });
     },
@@ -265,7 +286,9 @@ export function DownloadManagerProvider({
       pausedRef.current.delete(id);
       // Clean up chunk files
       for (let i = 0; i < CHUNK_COUNT; i++) {
-        FileSystem.deleteAsync(chunkUri(id, i), { idempotent: true }).catch(() => {});
+        FileSystem.deleteAsync(chunkUri(id, i), { idempotent: true }).catch(
+          () => {},
+        );
       }
       setDownloads((prev) => prev.filter((d) => d.id !== id));
 
@@ -308,6 +331,7 @@ export function useDownloadManager() {
 async function runChunkedDownload(
   id: number,
   url: string,
+  userPhone: string,
   totalBytes: number,
   ext: string,
   upsert: (id: number, patch: Partial<DownloadItem>) => void,
@@ -316,7 +340,6 @@ async function runChunkedDownload(
 ): Promise<void> {
   const chunkSize = Math.ceil(totalBytes / CHUNK_COUNT);
 
-  // Track how many bytes each chunk has written
   const written = new Array<number>(CHUNK_COUNT).fill(0);
   let speedTimer = Date.now();
   let speedBytes = 0;
@@ -348,6 +371,7 @@ async function runChunkedDownload(
     return downloadChunk(
       url,
       dest,
+      userPhone,
       start,
       end,
       (bytes) => onChunkProgress(i, bytes),
@@ -364,13 +388,8 @@ async function runChunkedDownload(
   upsert(id, { status: "merging", progress: 96, speed: null });
   const dest = finalUri(id, ext);
 
-  // Read each chunk and append — expo-file-system doesn't have a native
-  // concat, so we read/write in a loop. For large files this is slow but
-  // correct. Chunks are at most ~50 MB each so it's manageable.
   await FileSystem.deleteAsync(dest, { idempotent: true });
 
-  // Build merged file by writing chunks sequentially via base64 read/write.
-  // We write the first chunk, then encode-and-append remaining ones.
   let mergedContent = "";
   for (let i = 0; i < CHUNK_COUNT; i++) {
     const chunkPath = chunkUri(id, i);
@@ -393,6 +412,7 @@ async function runChunkedDownload(
 async function runSingleDownload(
   id: number,
   url: string,
+  userPhone: string,
   ext: string,
   upsert: (id: number, patch: Partial<DownloadItem>) => void,
   abortRefs: React.MutableRefObject<Map<number, boolean>>,
@@ -403,7 +423,11 @@ async function runSingleDownload(
   const resumable = FileSystem.createDownloadResumable(
     url,
     dest,
-    {},
+    {
+      headers: {
+        phone: userPhone, // Dynamic header forwarding fix
+      },
+    },
     ({ totalBytesWritten, totalBytesExpectedToWrite }) => {
       if (totalBytesExpectedToWrite > 0) {
         const pct = Math.min(
@@ -428,29 +452,26 @@ async function runSingleDownload(
 async function downloadChunk(
   url: string,
   dest: string,
+  userPhone: string,
   start: number,
   end: number,
   onProgress: (bytesWritten: number) => void,
   isAborted: () => boolean,
   isPaused: () => boolean,
 ): Promise<void> {
-  // expo-file-system createDownloadResumable supports arbitrary headers
-  // including Range — this is the key to parallel chunk downloading.
   return new Promise((resolve, reject) => {
     const resumable = FileSystem.createDownloadResumable(
       url,
       dest,
       {
         headers: {
+          phone: userPhone, // Crucial authorization injection
           Range: `bytes=${start}-${end}`,
         },
       },
       ({ totalBytesWritten }) => {
         onProgress(totalBytesWritten);
 
-        // Pause support: we can't truly pause a fetch mid-stream,
-        // so we pause by not starting new chunks. In-flight chunks
-        // complete their current request naturally.
         if (isAborted()) {
           resumable.cancelAsync().catch(() => {});
           reject(new Error("Cancelled"));
@@ -473,7 +494,6 @@ async function downloadChunk(
 
 /**
  * Save the final merged file to the device media library.
- * Stays within cacheDirectory to avoid cross-volume copy errors.
  */
 async function saveToLibrary(
   id: number,
@@ -483,7 +503,6 @@ async function saveToLibrary(
   const src = finalUri(id, ext);
 
   if (Platform.OS === "web") {
-    // Web: nothing to do — the file is already at src
     return;
   }
 
@@ -492,8 +511,6 @@ async function saveToLibrary(
     throw new Error("Media library permission denied");
   }
 
-  // createAssetAsync works reliably from cacheDirectory without any move —
-  // this is the fix for the cross-volume "Failed to export media assets" crash.
   const asset = await MediaLibrary.createAssetAsync(src);
 
   if (Platform.OS === "android") {
@@ -506,6 +523,5 @@ async function saveToLibrary(
     }
   }
 
-  // Clean up the temp file
   await FileSystem.deleteAsync(src, { idempotent: true });
 }

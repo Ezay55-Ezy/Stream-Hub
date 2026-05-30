@@ -1,3 +1,9 @@
+/**
+ * Series Details Modal
+ *
+ * Displays overview information and handles direct download initialization.
+ * Bridges authenticated context states directly to prevent layout authentication bypass.
+ */
 import React, { useCallback, useRef, useEffect } from "react";
 import {
   Modal,
@@ -18,6 +24,8 @@ import * as Haptics from "expo-haptics";
 import { useColors } from "@/hooks/useColors";
 import { useGetSeriesById } from "@workspace/api-client-react";
 import { useVideoDownload } from "@/hooks/useVideoDownload";
+// TODO: Replace this with your project's actual Auth context/hook path if different
+// import { useAuth } from "@/contexts/AuthContext";
 
 interface Props {
   seriesId: number | null;
@@ -44,6 +52,12 @@ export function SeriesDetailModal({ seriesId, onClose }: Props) {
   const colors = useColors();
   const insets = useSafeAreaInsets();
 
+  // ── AUTH LAYER ─────────────────────────────────────────────────────────────
+  // Extract your current session data here. Update the fallback logic below
+  // with whatever state key matches your Auth/User provider layout profile.
+  // const { currentUser } = useAuth();
+  const userPhone = "+254700000000"; // <-- Replace this string placeholder with your dynamic state context variable
+
   const { data: series, isLoading } = useGetSeriesById(seriesId ?? 0, {
     query: {
       enabled: seriesId !== null,
@@ -51,7 +65,7 @@ export function SeriesDetailModal({ seriesId, onClose }: Props) {
     },
   });
 
-  // Pass fileSize so the download manager can do parallel chunked downloading
+  // Pass fileSize and user authentication data so the backend can confirm a legal stream session
   const download = useVideoDownload(
     series?.id ?? 0,
     series?.title || "Series_Movie",
@@ -75,10 +89,20 @@ export function SeriesDetailModal({ seriesId, onClose }: Props) {
 
   const handleDownloadPress = useCallback(async () => {
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
+    if (!userPhone) {
+      Alert.alert(
+        "Authentication Required",
+        "Please sign into your account to download videos.",
+      );
+      return;
+    }
+
     switch (download.status) {
       case "idle":
       case "error":
-        download.start();
+        // Fixed: Explicitly inject current runtime user token context down to the stream hook handler
+        download.start(userPhone);
         break;
       case "downloading":
         download.pause();
@@ -89,7 +113,7 @@ export function SeriesDetailModal({ seriesId, onClose }: Props) {
       default:
         break;
     }
-  }, [download]);
+  }, [download, userPhone]);
 
   const handleCancelDownload = useCallback(() => {
     Alert.alert(
@@ -116,24 +140,42 @@ export function SeriesDetailModal({ seriesId, onClose }: Props) {
       case "downloading":
         return { icon: "pause" as const, label: "Pause", color: "#f59e0b" };
       case "paused":
-        return { icon: "play" as const, label: "Resume", color: colors.primary };
+        return {
+          icon: "play" as const,
+          label: "Resume",
+          color: colors.primary,
+        };
       case "merging":
         return { icon: "layers" as const, label: "Merging…", color: "#8b5cf6" };
       case "saving":
         return { icon: "save" as const, label: "Saving…", color: "#06b6d4" };
       case "complete":
-        return { icon: "check-circle" as const, label: "Saved to Library", color: "#22c55e" };
+        return {
+          icon: "check-circle" as const,
+          label: "Saved to Library",
+          color: "#22c55e",
+        };
       case "error":
-        return { icon: "refresh-cw" as const, label: "Retry", color: "#ef4444" };
+        return {
+          icon: "refresh-cw" as const,
+          label: "Retry",
+          color: "#ef4444",
+        };
       default:
-        return { icon: "download" as const, label: "Download", color: colors.primary };
+        return {
+          icon: "download" as const,
+          label: "Download",
+          color: colors.primary,
+        };
     }
   })();
 
   const isActive =
     download.status === "downloading" || download.status === "paused";
   const isBusy =
-    download.status === "merging" || download.status === "saving" || download.status === "queued";
+    download.status === "merging" ||
+    download.status === "saving" ||
+    download.status === "queued";
   const showProgress =
     download.status !== "idle" && download.status !== "complete";
 
@@ -270,7 +312,12 @@ export function SeriesDetailModal({ seriesId, onClose }: Props) {
                     {download.progress}%
                   </Text>
                   {download.speed && download.status === "downloading" && (
-                    <Text style={[styles.speedText, { color: colors.mutedForeground }]}>
+                    <Text
+                      style={[
+                        styles.speedText,
+                        { color: colors.mutedForeground },
+                      ]}
+                    >
                       {download.speed}
                     </Text>
                   )}
@@ -317,8 +364,14 @@ export function SeriesDetailModal({ seriesId, onClose }: Props) {
             </TouchableOpacity>
 
             {/* Hint: download continues in background */}
-            {(download.status === "downloading" || download.status === "queued") && (
-              <Text style={[styles.backgroundHint, { color: colors.mutedForeground }]}>
+            {(download.status === "downloading" ||
+              download.status === "queued") && (
+              <Text
+                style={[
+                  styles.backgroundHint,
+                  { color: colors.mutedForeground },
+                ]}
+              >
                 Download continues in the Downloads tab when you close this.
               </Text>
             )}

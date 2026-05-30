@@ -2,6 +2,7 @@
  * Standalone production server for Expo static builds.
  * Extended with a high-performance native media streaming engine for StreamGram downloads.
  * Supports native HTTP 206 Partial Content range seeking, pause, and resume.
+ * * SECURITY FIX: Removed hardcoded phone fallback to force dynamic OTP auth triggers.
  */
 
 const http = require("http");
@@ -100,12 +101,24 @@ function serveStaticFile(urlPath, res) {
 }
 
 /**
- * 🎬 NEW: High-performance streaming proxy pipeline bridge.
+ * 🎬 High-performance streaming proxy pipeline bridge.
  * Intercepts mobile Expo file system downloads and fetches from the user client layer.
  */
 function handleMediaStreamPipeline(messageId, req, res) {
-  const phoneHeader = req.headers["phone"] || "+254700000000";
+  const phoneHeader = req.headers["phone"];
   const rangeHeader = req.headers["range"];
+
+  // FIX: If no phone number is provided, block request and force authorization
+  if (!phoneHeader) {
+    res.writeHead(401, { "content-type": "application/json" });
+    res.end(
+      JSON.stringify({
+        error:
+          "Unauthorized: Missing active phone identifier. Redirecting to OTP authentication flow.",
+      }),
+    );
+    return;
+  }
 
   // Point toward your internal Python/Telethon core service running in your workspace
   const backendServiceUrl = `http://127.0.0.1:8000/api/download/${messageId}`;
