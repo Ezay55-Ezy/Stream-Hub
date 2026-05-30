@@ -9,6 +9,4 @@
 export type ListSeriesParams = {
 categoryId?: number;
 search?: string;
-limit?: number;
-offset?: number;
 };

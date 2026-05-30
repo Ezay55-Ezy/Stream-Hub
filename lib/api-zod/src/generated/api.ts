@@ -20,14 +20,9 @@ export const HealthCheckResponse = zod.object({
 /**
  * @summary List all series
  */
-export const listSeriesQueryLimitDefault = 50;
-export const listSeriesQueryOffsetDefault = 0;
-
 export const ListSeriesQueryParams = zod.object({
   "categoryId": zod.coerce.number().optional(),
-  "search": zod.coerce.string().optional(),
-  "limit": zod.coerce.number().default(listSeriesQueryLimitDefault),
-  "offset": zod.coerce.number().default(listSeriesQueryOffsetDefault)
+  "search": zod.coerce.string().optional()
 })
 
 export const ListSeriesResponseItem = zod.object({
@@ -67,12 +62,6 @@ export const GetFeaturedSeriesResponse = zod.object({
 /**
  * @summary Get recently added series
  */
-export const getRecentSeriesQueryLimitDefault = 10;
-
-export const GetRecentSeriesQueryParams = zod.object({
-  "limit": zod.coerce.number().default(getRecentSeriesQueryLimitDefault)
-})
-
 export const GetRecentSeriesResponseItem = zod.object({
   "id": zod.number(),
   "title": zod.string(),
@@ -112,7 +101,7 @@ export const GetSeriesByIdResponse = zod.object({
 
 
 /**
- * @summary List all categories
+ * @summary List all categories with series count
  */
 export const ListCategoriesResponseItem = zod.object({
   "id": zod.number(),
@@ -120,34 +109,5 @@ export const ListCategoriesResponseItem = zod.object({
   "seriesCount": zod.number()
 })
 export const ListCategoriesResponse = zod.array(ListCategoriesResponseItem)
-
-
-/**
- * @summary Get series for a specific category
- */
-export const GetSeriesByCategoryParams = zod.object({
-  "id": zod.coerce.number()
-})
-
-export const getSeriesByCategoryQueryLimitDefault = 20;
-
-export const GetSeriesByCategoryQueryParams = zod.object({
-  "limit": zod.coerce.number().default(getSeriesByCategoryQueryLimitDefault)
-})
-
-export const GetSeriesByCategoryResponseItem = zod.object({
-  "id": zod.number(),
-  "title": zod.string(),
-  "description": zod.string().nullish(),
-  "posterUrl": zod.string(),
-  "downloadUrl": zod.string(),
-  "telegramFileId": zod.string(),
-  "fileSize": zod.number().nullish(),
-  "duration": zod.number().nullish(),
-  "categoryId": zod.number().nullish(),
-  "categoryName": zod.string().nullish(),
-  "createdAt": zod.string()
-})
-export const GetSeriesByCategoryResponse = zod.array(GetSeriesByCategoryResponseItem)
 
 

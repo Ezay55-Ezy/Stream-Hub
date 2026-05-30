@@ -17,8 +17,6 @@ import type {
 
 import type {
   Category,
-  GetRecentSeriesParams,
-  GetSeriesByCategoryParams,
   HealthStatus,
   ListSeriesParams,
   Series
@@ -275,27 +273,20 @@ export function useGetFeaturedSeries<TData = Awaited<ReturnType<typeof getFeatur
 
 
 
-export const getGetRecentSeriesUrl = (params?: GetRecentSeriesParams,) => {
-  const normalizedParams = new URLSearchParams();
+export const getGetRecentSeriesUrl = () => {
 
-  Object.entries(params || {}).forEach(([key, value]) => {
 
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? 'null' : value.toString())
-    }
-  });
 
-  const stringifiedParams = normalizedParams.toString();
 
-  return stringifiedParams.length > 0 ? `/api/series/recent?${stringifiedParams}` : `/api/series/recent`
+  return `/api/series/recent`
 }
 
 /**
  * @summary Get recently added series
  */
-export const getRecentSeries = async (params?: GetRecentSeriesParams, options?: RequestInit): Promise<Series[]> => {
+export const getRecentSeries = async ( options?: RequestInit): Promise<Series[]> => {
 
-  return customFetch<Series[]>(getGetRecentSeriesUrl(params),
+  return customFetch<Series[]>(getGetRecentSeriesUrl(),
   {
     ...options,
     method: 'GET'
@@ -308,23 +299,23 @@ export const getRecentSeries = async (params?: GetRecentSeriesParams, options?: 
 
 
 
-export const getGetRecentSeriesQueryKey = (params?: GetRecentSeriesParams,) => {
+export const getGetRecentSeriesQueryKey = () => {
     return [
-    `/api/series/recent`, ...(params ? [params] : [])
+    `/api/series/recent`
     ] as const;
     }
 
 
-export const getGetRecentSeriesQueryOptions = <TData = Awaited<ReturnType<typeof getRecentSeries>>, TError = ErrorType<unknown>>(params?: GetRecentSeriesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRecentSeries>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+export const getGetRecentSeriesQueryOptions = <TData = Awaited<ReturnType<typeof getRecentSeries>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRecentSeries>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getGetRecentSeriesQueryKey(params);
+  const queryKey =  queryOptions?.queryKey ?? getGetRecentSeriesQueryKey();
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getRecentSeries>>> = ({ signal }) => getRecentSeries(params, { signal, ...requestOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getRecentSeries>>> = ({ signal }) => getRecentSeries({ signal, ...requestOptions });
 
 
 
@@ -342,11 +333,11 @@ export type GetRecentSeriesQueryError = ErrorType<unknown>
  */
 
 export function useGetRecentSeries<TData = Awaited<ReturnType<typeof getRecentSeries>>, TError = ErrorType<unknown>>(
- params?: GetRecentSeriesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRecentSeries>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRecentSeries>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
 
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
-  const queryOptions = getGetRecentSeriesQueryOptions(params,options)
+  const queryOptions = getGetRecentSeriesQueryOptions(options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 
@@ -445,7 +436,7 @@ export const getListCategoriesUrl = () => {
 }
 
 /**
- * @summary List all categories
+ * @summary List all categories with series count
  */
 export const listCategories = async ( options?: RequestInit): Promise<Category[]> => {
 
@@ -492,7 +483,7 @@ export type ListCategoriesQueryError = ErrorType<unknown>
 
 
 /**
- * @summary List all categories
+ * @summary List all categories with series count
  */
 
 export function useListCategories<TData = Awaited<ReturnType<typeof listCategories>>, TError = ErrorType<unknown>>(
@@ -501,95 +492,6 @@ export function useListCategories<TData = Awaited<ReturnType<typeof listCategori
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getListCategoriesQueryOptions(options)
-
-  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
-
-  return { ...query, queryKey: queryOptions.queryKey };
-}
-
-
-
-
-
-
-
-export const getGetSeriesByCategoryUrl = (id: number,
-    params?: GetSeriesByCategoryParams,) => {
-  const normalizedParams = new URLSearchParams();
-
-  Object.entries(params || {}).forEach(([key, value]) => {
-
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? 'null' : value.toString())
-    }
-  });
-
-  const stringifiedParams = normalizedParams.toString();
-
-  return stringifiedParams.length > 0 ? `/api/categories/${id}/series?${stringifiedParams}` : `/api/categories/${id}/series`
-}
-
-/**
- * @summary Get series for a specific category
- */
-export const getSeriesByCategory = async (id: number,
-    params?: GetSeriesByCategoryParams, options?: RequestInit): Promise<Series[]> => {
-
-  return customFetch<Series[]>(getGetSeriesByCategoryUrl(id,params),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-);}
-
-
-
-
-
-export const getGetSeriesByCategoryQueryKey = (id: number,
-    params?: GetSeriesByCategoryParams,) => {
-    return [
-    `/api/categories/${id}/series`, ...(params ? [params] : [])
-    ] as const;
-    }
-
-
-export const getGetSeriesByCategoryQueryOptions = <TData = Awaited<ReturnType<typeof getSeriesByCategory>>, TError = ErrorType<unknown>>(id: number,
-    params?: GetSeriesByCategoryParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSeriesByCategory>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getGetSeriesByCategoryQueryKey(id,params);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSeriesByCategory>>> = ({ signal }) => getSeriesByCategory(id,params, { signal, ...requestOptions });
-
-
-
-
-
-   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSeriesByCategory>>, TError, TData> & { queryKey: QueryKey }
-}
-
-export type GetSeriesByCategoryQueryResult = NonNullable<Awaited<ReturnType<typeof getSeriesByCategory>>>
-export type GetSeriesByCategoryQueryError = ErrorType<unknown>
-
-
-/**
- * @summary Get series for a specific category
- */
-
-export function useGetSeriesByCategory<TData = Awaited<ReturnType<typeof getSeriesByCategory>>, TError = ErrorType<unknown>>(
- id: number,
-    params?: GetSeriesByCategoryParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSeriesByCategory>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
-
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-
-  const queryOptions = getGetSeriesByCategoryQueryOptions(id,params,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

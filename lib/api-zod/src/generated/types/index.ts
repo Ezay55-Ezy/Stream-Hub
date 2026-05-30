@@ -7,8 +7,6 @@
  */
 
 export * from './category';
-export * from './getRecentSeriesParams';
-export * from './getSeriesByCategoryParams';
 export * from './healthStatus';
 export * from './listSeriesParams';
 export * from './series';

@@ -37,15 +37,5 @@ export interface Category {
 export type ListSeriesParams = {
 categoryId?: number;
 search?: string;
-limit?: number;
-offset?: number;
-};
-
-export type GetRecentSeriesParams = {
-limit?: number;
-};
-
-export type GetSeriesByCategoryParams = {
-limit?: number;
 };
 
