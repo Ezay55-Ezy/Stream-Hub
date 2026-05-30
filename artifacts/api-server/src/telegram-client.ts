@@ -14,6 +14,9 @@ import { TelegramClient, Api } from "telegram";
 import { StringSession } from "telegram/sessions/index.js";
 import { NewMessage, NewMessageEvent } from "telegram/events/index.js";
 import { ConnectionTCPFull } from "telegram/network/connection/TCPFull.js";
+import { iterDownload } from "telegram/client/downloads.js";
+import bigInt from "big-integer";
+import type { Response } from "express";
 import { db } from "@workspace/db";
 import { seriesTable, categoriesTable, insertSeriesSchema } from "@workspace/db";
 import { eq } from "drizzle-orm";
@@ -251,6 +254,133 @@ class TelegramClientManager {
       logger.error({ err }, "Failed to save video message");
       return false;
     }
+  }
+
+  // ── file streaming ───────────────────────────────────────────────────────
+
+  /**
+   * Stream a Telegram Saved Messages video directly to an Express Response.
+   * Supports HTTP Range requests (RFC 7233) for pause/resume downloads.
+   *
+   * @param messageId  - Telegram message ID inside Saved Messages ("me")
+   * @param rangeHeader - value of the incoming Range header, e.g. "bytes=52428800-"
+   * @param res        - Express Response object (headers must not be sent yet)
+   */
+  async streamFileTo(
+    messageId: number,
+    rangeHeader: string | undefined,
+    res: Response
+  ): Promise<void> {
+    if (!this.authenticated) {
+      res.status(401).json({ error: "Not authenticated" });
+      return;
+    }
+
+    // Fetch the message from Saved Messages
+    const messages = await this.client.getMessages("me", { ids: [messageId] });
+    const msg = messages[0];
+
+    if (!msg?.media || (msg.media as any).className !== "MessageMediaDocument") {
+      res.status(404).json({ error: "Media not found in Saved Messages" });
+      return;
+    }
+
+    const doc = (msg.media as any).document;
+    const fileSize = Number(doc.size);
+    const mimeType: string = doc.mimeType ?? "video/mp4";
+    const filenameAttr = (doc.attributes ?? []).find(
+      (a: any) => a.className === "DocumentAttributeFilename"
+    );
+    const filename = (filenameAttr?.fileName as string | undefined) ?? `video_${messageId}.mp4`;
+
+    // Parse Range header
+    let rangeStart = 0;
+    let rangeEnd = fileSize - 1;
+
+    if (rangeHeader) {
+      const m = rangeHeader.match(/bytes=(\d+)-(\d*)/);
+      if (m) {
+        rangeStart = parseInt(m[1], 10);
+        rangeEnd = m[2] ? parseInt(m[2], 10) : fileSize - 1;
+      }
+    }
+
+    const contentLength = rangeEnd - rangeStart + 1;
+
+    res.setHeader("Accept-Ranges", "bytes");
+    res.setHeader("Content-Type", mimeType);
+    res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+    res.setHeader("Content-Length", contentLength.toString());
+
+    if (rangeHeader) {
+      res.setHeader("Content-Range", `bytes ${rangeStart}-${rangeEnd}/${fileSize}`);
+      res.status(206);
+    } else {
+      res.status(200);
+    }
+
+    const location = new Api.InputDocumentFileLocation({
+      id: doc.id,
+      accessHash: doc.accessHash,
+      fileReference: doc.fileReference,
+      thumbSize: "",
+    });
+
+    // Align start offset to the requestSize boundary so Telegram's MTProto
+    // always receives a properly-aligned offset. Any excess bytes from the
+    // aligned start up to the real rangeStart are discarded from the first chunk.
+    const REQUEST_SIZE = 1024 * 1024; // 1 MB
+    const alignedStart = Math.floor(rangeStart / REQUEST_SIZE) * REQUEST_SIZE;
+    const bytesToSkip = rangeStart - alignedStart;
+    let bytesRemaining = contentLength;
+    let isFirstChunk = true;
+
+    let aborted = false;
+    res.on("close", () => {
+      aborted = true;
+    });
+
+    try {
+      const iter = iterDownload(this.client, {
+        file: location,
+        offset: bigInt(alignedStart),
+        requestSize: REQUEST_SIZE,
+        dcId: doc.dcId as number,
+      });
+
+      for await (const rawChunk of iter as unknown as AsyncIterable<Buffer>) {
+        if (aborted || bytesRemaining <= 0) break;
+
+        let chunk = rawChunk as Buffer;
+
+        // Trim alignment prefix on the first chunk
+        if (isFirstChunk && bytesToSkip > 0) {
+          chunk = chunk.slice(bytesToSkip);
+          isFirstChunk = false;
+        }
+
+        // Trim to exact range boundary
+        if (chunk.length > bytesRemaining) {
+          chunk = chunk.slice(0, bytesRemaining);
+        }
+
+        if (chunk.length === 0) continue;
+
+        const ok = res.write(chunk);
+        bytesRemaining -= chunk.length;
+
+        // Respect backpressure
+        if (!ok) {
+          await new Promise<void>((r) => res.once("drain", r));
+        }
+      }
+    } catch (err) {
+      if (!aborted) {
+        logger.error({ err, messageId }, "Error while streaming file");
+      }
+    }
+
+    res.end();
   }
 
   /** Listen for new videos arriving in Saved Messages in real time. */

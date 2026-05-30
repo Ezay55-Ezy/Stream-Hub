@@ -1,0 +1,2 @@
+- [expo-file-system v19 legacy API](expo-file-system-legacy.md) — createDownloadResumable lives at `expo-file-system/legacy`, not the default import.
+- [iterDownload offset alignment](iterdownload-alignment.md) — must align Range start to requestSize boundary; discard prefix bytes from first chunk.

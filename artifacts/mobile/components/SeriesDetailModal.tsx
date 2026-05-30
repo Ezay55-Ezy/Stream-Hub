@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useRef, useEffect } from "react";
 import {
   Modal,
   View,
@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   ScrollView,
   Platform,
-  Linking,
+  Animated,
   Alert,
 } from "react-native";
 import { Image } from "expo-image";
@@ -17,6 +17,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
 import { useColors } from "@/hooks/useColors";
 import { useGetSeriesById } from "@workspace/api-client-react";
+import { useVideoDownload } from "@/hooks/useVideoDownload";
 
 interface Props {
   seriesId: number | null;
@@ -49,45 +50,101 @@ export function SeriesDetailModal({ seriesId, onClose }: Props) {
     },
   });
 
-  const handleDownload = useCallback(async () => {
-    if (!series) return;
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    try {
-      const canOpen = await Linking.canOpenURL(series.downloadUrl);
-      if (canOpen) {
-        await Linking.openURL(series.downloadUrl);
-      } else {
-        Alert.alert(
-          "Download",
-          "Opening download link in browser…",
-          [{ text: "OK", onPress: () => Linking.openURL(series.downloadUrl) }]
-        );
-      }
-    } catch {
-      Alert.alert("Error", "Could not start download. Please try again.");
+  const download = useVideoDownload(series?.id ?? 0);
+
+  // Reset download state whenever a different series is opened
+  const prevSeriesId = useRef<number | null>(null);
+  useEffect(() => {
+    if (seriesId !== null && seriesId !== prevSeriesId.current) {
+      if (prevSeriesId.current !== null) download.reset();
+      prevSeriesId.current = seriesId;
     }
-  }, [series]);
+  }, [seriesId]);
+
+  // Animated progress bar width (0 → 1)
+  const progressAnim = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.timing(progressAnim, {
+      toValue: download.progress / 100,
+      duration: 120,
+      useNativeDriver: false,
+    }).start();
+  }, [download.progress]);
+
+  const handleClose = useCallback(async () => {
+    if (download.status === "downloading") {
+      await download.pause();
+    }
+    onClose();
+  }, [download, onClose]);
+
+  const handleDownloadPress = useCallback(async () => {
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    switch (download.status) {
+      case "idle":
+      case "error":
+        await download.start();
+        break;
+      case "downloading":
+        await download.pause();
+        break;
+      case "paused":
+        await download.resume();
+        break;
+      default:
+        break;
+    }
+  }, [download]);
+
+  const handleCancelDownload = useCallback(async () => {
+    Alert.alert("Cancel Download", "Are you sure you want to cancel this download?", [
+      { text: "Keep Downloading", style: "cancel" },
+      {
+        text: "Cancel",
+        style: "destructive",
+        onPress: () => download.cancel(),
+      },
+    ]);
+  }, [download]);
 
   const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
+
+  // Dynamic button config based on download state
+  const btnConfig = (() => {
+    switch (download.status) {
+      case "downloading":
+        return { icon: "pause" as const, label: "Pause", color: "#f59e0b" };
+      case "paused":
+        return { icon: "play" as const, label: "Resume", color: colors.primary };
+      case "complete":
+        return { icon: "check-circle" as const, label: "Saved to Library", color: "#22c55e" };
+      case "error":
+        return { icon: "refresh-cw" as const, label: "Retry", color: "#ef4444" };
+      default:
+        return { icon: "download" as const, label: "Download", color: colors.primary };
+    }
+  })();
+
+  const isActive = download.status === "downloading" || download.status === "paused";
 
   return (
     <Modal
       visible={seriesId !== null}
       animationType="slide"
       presentationStyle="pageSheet"
-      onRequestClose={onClose}
+      onRequestClose={handleClose}
     >
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         {/* Close button */}
         <TouchableOpacity
           style={[styles.closeBtn, { top: insets.top + 12 }]}
-          onPress={onClose}
+          onPress={handleClose}
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
         >
           <Feather name="x" size={20} color="#fff" />
         </TouchableOpacity>
 
-        <ScrollView showsVerticalScrollIndicator={false} bounces={true}>
+        <ScrollView showsVerticalScrollIndicator={false} bounces>
           {/* Poster hero */}
           <View style={styles.heroContainer}>
             {series?.posterUrl ? (
@@ -149,15 +206,59 @@ export function SeriesDetailModal({ seriesId, onClose }: Props) {
               )
             )}
 
-            {/* Download button */}
+            {/* ── Download section ───────────────────────────────────── */}
+            {download.status !== "idle" && download.status !== "complete" && (
+              <View style={styles.progressSection}>
+                {/* Progress bar track */}
+                <View style={[styles.progressTrack, { backgroundColor: colors.border }]}>
+                  <Animated.View
+                    style={[
+                      styles.progressFill,
+                      {
+                        backgroundColor: btnConfig.color,
+                        width: progressAnim.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: ["0%", "100%"],
+                        }),
+                      },
+                    ]}
+                  />
+                </View>
+
+                {/* Progress labels */}
+                <View style={styles.progressRow}>
+                  <Text style={[styles.progressPct, { color: btnConfig.color }]}>
+                    {download.progress}%
+                  </Text>
+                  {isActive && (
+                    <TouchableOpacity onPress={handleCancelDownload} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                      <Text style={[styles.cancelLink, { color: colors.mutedForeground }]}>
+                        Cancel
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                  {download.status === "error" && download.error ? (
+                    <Text style={[styles.errorText, { color: "#ef4444" }]} numberOfLines={1}>
+                      {download.error}
+                    </Text>
+                  ) : null}
+                </View>
+              </View>
+            )}
+
+            {/* Download / Pause / Resume / Complete button */}
             <TouchableOpacity
-              style={[styles.downloadBtn, { backgroundColor: colors.primary }]}
-              onPress={handleDownload}
+              style={[
+                styles.downloadBtn,
+                { backgroundColor: btnConfig.color },
+                !series && styles.btnDisabled,
+              ]}
+              onPress={handleDownloadPress}
               activeOpacity={0.85}
-              disabled={!series}
+              disabled={!series || download.status === "complete"}
             >
-              <Feather name="download" size={18} color="#fff" />
-              <Text style={styles.downloadBtnText}>Download Series</Text>
+              <Feather name={btnConfig.icon} size={18} color="#fff" />
+              <Text style={styles.downloadBtnText}>{btnConfig.label}</Text>
             </TouchableOpacity>
 
             <View style={{ height: bottomPad + 16 }} />
@@ -169,9 +270,7 @@ export function SeriesDetailModal({ seriesId, onClose }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
+  container: { flex: 1 },
   closeBtn: {
     position: "absolute",
     right: 16,
@@ -183,18 +282,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  heroContainer: {
-    width: "100%",
-    height: 380,
-  },
-  posterImage: {
-    width: "100%",
-    height: "100%",
-  },
-  details: {
-    paddingHorizontal: 20,
-    paddingTop: 4,
-  },
+  heroContainer: { width: "100%", height: 380 },
+  posterImage: { width: "100%", height: "100%" },
+  details: { paddingHorizontal: 20, paddingTop: 4 },
   titleSkeleton: {
     height: 30,
     borderRadius: 6,
@@ -225,15 +315,42 @@ const styles = StyleSheet.create({
     letterSpacing: 0.8,
     textTransform: "uppercase",
   },
-  meta: {
-    fontSize: 13,
-    fontFamily: "Inter_500Medium",
-  },
+  meta: { fontSize: 13, fontFamily: "Inter_500Medium" },
   description: {
     fontSize: 14,
     fontFamily: "Inter_400Regular",
     lineHeight: 21,
     marginBottom: 24,
+  },
+  progressSection: { marginBottom: 14 },
+  progressTrack: {
+    height: 4,
+    borderRadius: 2,
+    overflow: "hidden",
+    marginBottom: 8,
+  },
+  progressFill: {
+    height: "100%",
+    borderRadius: 2,
+  },
+  progressRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  progressPct: {
+    fontSize: 13,
+    fontFamily: "Inter_700Bold",
+  },
+  cancelLink: {
+    fontSize: 12,
+    fontFamily: "Inter_500Medium",
+  },
+  errorText: {
+    fontSize: 12,
+    fontFamily: "Inter_400Regular",
+    flex: 1,
+    textAlign: "right",
   },
   downloadBtn: {
     flexDirection: "row",
@@ -244,6 +361,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     marginTop: 4,
   },
+  btnDisabled: { opacity: 0.5 },
   downloadBtnText: {
     color: "#fff",
     fontFamily: "Inter_700Bold",
