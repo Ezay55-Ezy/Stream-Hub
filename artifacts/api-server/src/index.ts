@@ -1,6 +1,6 @@
 import app from "./app.js";
 import { logger } from "./lib/logger.js";
-import { startBot } from "./telegram-bot.js";
+import { startUserClient } from "./telegram-bot.js";
 
 const rawPort = process.env["PORT"];
 
@@ -22,5 +22,7 @@ app.listen(port, (err) => {
   logger.info({ port }, "Server listening");
 });
 
-// Start Telegram bot (non-fatal — server stays up even if bot fails)
-startBot();
+// Start Telegram user client (non-fatal — server stays up even if auth fails)
+startUserClient().catch((err) => {
+  logger.warn({ err }, "Telegram user client failed to start");
+});
