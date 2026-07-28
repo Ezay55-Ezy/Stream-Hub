@@ -88,16 +88,8 @@ async function play(id) {
     playerDiv.classList.toggle('hidden');
     return;
   }
-  try {
-    const res = await fetch(`${API}/download/${id}`);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-    playerDiv.innerHTML = `<video controls autoplay preload="metadata" style="width:100%"><source src="${data.url}" type="video/mp4"></video>`;
-    playerDiv.classList.remove('hidden');
-  } catch (e) {
-    playerDiv.innerHTML = `<div class="error">Playback failed: ${e.message}</div>`;
-    playerDiv.classList.remove('hidden');
-  }
+  playerDiv.innerHTML = `<video controls preload="metadata" style="width:100%"><source src="/api/download/${id}" type="video/mp4"></video>`;
+  playerDiv.classList.remove('hidden');
 }
 
 load();
