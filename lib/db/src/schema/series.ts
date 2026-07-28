@@ -27,6 +27,11 @@ export const seriesTable = pgTable("series", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
 });
 
+export const configTable = pgTable("config", {
+  key: text("key").primaryKey(),
+  value: text("value").notNull(),
+});
+
 export const insertSeriesSchema = createInsertSchema(seriesTable).omit({ id: true, createdAt: true, updatedAt: true });
 export type InsertSeries = z.infer<typeof insertSeriesSchema>;
 export type Series = typeof seriesTable.$inferSelect;

@@ -73,7 +73,7 @@ const DownloadManagerContext = createContext<DownloadManagerContextValue>({
 
 function getDomain(): string {
   const d =
-    process.env["EXPO_PUBLIC_DOMAIN"] || "stream-hub-tobonezra159.replit.app";
+    process.env["EXPO_PUBLIC_DOMAIN"] || "streamgram-api.onrender.com";
   return d.startsWith("http") ? d : `https://${d}`;
 }
 

@@ -16,6 +16,9 @@
     "production": {
       "android": {
         "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_DOMAIN": "streamgram-api.onrender.com"
       }
     }
   },

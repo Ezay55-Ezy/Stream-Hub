@@ -5,11 +5,9 @@
  * waits for user input. Auth happens through the /api/auth/* endpoints
  * which the mobile app drives via the login pop-up.
  *
- * Session is persisted to telegram.session in the api-server directory
- * so it survives workflow restarts.
+ * Session is persisted to the Neon PostgreSQL database so it survives
+ * server restarts and redeploys.
  */
-import path from "path";
-import { existsSync, readFileSync, writeFileSync } from "fs";
 import { TelegramClient, Api } from "telegram";
 import { StringSession } from "telegram/sessions/index.js";
 import { NewMessage, NewMessageEvent } from "telegram/events/index.js";
@@ -19,7 +17,7 @@ import { iterDownload } from "telegram/client/downloads.js";
 import bigInt from "big-integer";
 import type { Response } from "express";
 import { db } from "@workspace/db";
-import { seriesTable, categoriesTable, insertSeriesSchema } from "@workspace/db";
+import { seriesTable, categoriesTable, configTable, insertSeriesSchema } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { logger } from "./lib/logger.js";
 
@@ -28,9 +26,7 @@ import { logger } from "./lib/logger.js";
 const API_ID = Number(process.env["TELEGRAM_API_ID"] ?? "0");
 const API_HASH = process.env["TELEGRAM_API_HASH"] ?? "";
 
-// Session file lives one level above the compiled dist/ directory,
-// i.e. inside artifacts/api-server/ — persists across restarts.
-const SESSION_FILE = path.resolve(__dirname, "..", "telegram.session");
+
 
 // ── DB helpers ────────────────────────────────────────────────────────────────
 
@@ -76,9 +72,7 @@ class TelegramClientManager {
   private phone: string | null = null;
 
   constructor() {
-    const sessionStr = this.loadSession();
-    const session = new StringSession(sessionStr);
-    this.client = new TelegramClient(session, API_ID, API_HASH, {
+    this.client = new TelegramClient(new StringSession(""), API_ID, API_HASH, {
       connectionRetries: 3,
       connection: ConnectionTCPFull,
       useWSS: false,
@@ -87,26 +81,46 @@ class TelegramClientManager {
 
   // ── session persistence ──────────────────────────────────────────────────
 
-  private loadSession(): string {
+  private async loadSession(): Promise<string> {
     try {
-      if (existsSync(SESSION_FILE)) {
-        const s = readFileSync(SESSION_FILE, "utf8").trim();
-        if (s) return s;
-      }
-    } catch {}
+      const row = await db
+        .select({ value: configTable.value })
+        .from(configTable)
+        .where(eq(configTable.key, "telegram_session"))
+        .limit(1);
+      if (row.length > 0 && row[0].value) return row[0].value;
+    } catch (err) {
+      logger.error({ err }, "Failed to load session from DB");
+    }
     return process.env["TELEGRAM_SESSION"] ?? "";
   }
 
-  private saveSession(sessionStr: string): void {
+  private async saveSession(sessionStr: string): Promise<void> {
     try {
-      writeFileSync(SESSION_FILE, sessionStr, "utf8");
-      logger.info("Telegram session saved to file");
+      await db
+        .insert(configTable)
+        .values({ key: "telegram_session", value: sessionStr })
+        .onConflictDoUpdate({ target: configTable.key, set: { value: sessionStr } });
+      logger.info("Telegram session saved to database");
     } catch (err) {
-      logger.error({ err }, "Failed to save Telegram session — add it as TELEGRAM_SESSION secret");
+      logger.error({ err }, "Failed to save Telegram session to database");
     }
   }
 
   // ── lifecycle ────────────────────────────────────────────────────────────
+
+  private async ensureConfigTable(): Promise<void> {
+    try {
+      await db.execute(
+        `CREATE TABLE IF NOT EXISTS config (
+          key TEXT PRIMARY KEY,
+          value TEXT NOT NULL
+        )`
+      );
+    } catch (err) {
+      logger.error({ err }, "Failed to ensure config table");
+    }
+  }
 
   async initialize(): Promise<void> {
     if (!API_ID || !API_HASH) {
@@ -114,7 +128,13 @@ class TelegramClientManager {
       return;
     }
 
+    await this.ensureConfigTable();
+
     try {
+      const sessionStr = await this.loadSession();
+      if (sessionStr) {
+        this.client.session = new StringSession(sessionStr);
+      }
       await this.client.connect();
       this.authenticated = await this.client.isUserAuthorized();
 
