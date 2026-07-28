@@ -157,7 +157,7 @@ class TelegramClientManager {
 
   async ensureConnected() {
     if (!this.client.connected) {
-      await this.client.connect();
+      await this.client.connect({ connectionTimeout: 30000 });
     }
   }
 
@@ -178,7 +178,7 @@ class TelegramClientManager {
   }
 
   async verifyCode(phone: string, phoneCodeHash: string, code: string): Promise<string> {
-    await this.ensureConnected();
+    if (!this.client.connected) await this.client.connect();
     await this.client.invoke(
       new Api.auth.SignIn({
         phoneNumber: phone,
