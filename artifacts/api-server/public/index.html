@@ -11,9 +11,9 @@ a{color:inherit;text-decoration:none}
 
 /* Header */
 header{position:fixed;top:0;left:0;right:0;z-index:100;padding:0 48px;height:64px;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(180deg,rgba(15,15,15,.98) 0%,transparent);transition:background .3s}
-header.scrolled{background:#0f0f0f;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+header.scrolled{background:#0f0f0f}
 header h1{font-size:22px;font-weight:800;background:linear-gradient(135deg,#e50914,#ff4d4d);-webkit-background-clip:text;-webkit-text-fill-color:transparent;cursor:pointer;letter-spacing:-.5px}
-header nav{display:flex;gap:24px;align-items:center}
+header nav{display:flex;gap:24px}
 header nav a{font-size:14px;color:#aaa;transition:color .2s}
 header nav a:hover{color:#fff}
 
@@ -30,10 +30,10 @@ header nav a:hover{color:#fff}
 .hero-actions button{display:inline-flex;align-items:center;gap:10px;padding:12px 28px;border:none;border-radius:6px;font-size:16px;font-weight:700;cursor:pointer;transition:transform .15s}
 .hero-actions button:hover{transform:scale(1.04)}
 .btn-play{background:#e50914;color:#fff}
-.btn-download{background:rgba(255,255,255,.12);color:#fff;backdrop-filter:blur(4px)}
+.btn-download{background:rgba(255,255,255,.12);color:#fff}
 .btn-download:hover{background:rgba(255,255,255,.2)}
 
-/* Grid Section */
+/* Grid */
 .section{padding:40px 48px 0}
 .section-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
 .section-header h3{font-size:20px;font-weight:700}
@@ -44,7 +44,7 @@ header nav a:hover{color:#fff}
 .card-poster{aspect-ratio:2/3;background:#222;display:flex;align-items:center;justify-content:center;overflow:hidden}
 .card-poster img{width:100%;height:100%;object-fit:cover;transition:transform .3s}
 .card:hover .card-poster img{transform:scale(1.06)}
-.card-poster .p-fallback{font-size:40px;opacity:.15;user-select:none}
+.card-poster .p-fallback{font-size:40px;opacity:.15}
 .card-body{padding:12px}
 .card-body h4{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .card-body .meta{font-size:12px;color:#777;display:flex;gap:8px;margin-top:2px}
@@ -55,11 +55,10 @@ header nav a:hover{color:#fff}
 
 /* Watch Page */
 .watch{min-height:100vh;background:#000}
-.watch-nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:16px 48px;display:flex;align-items:center;gap:20px}
+.watch-nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:16px 48px;display:flex;align-items:center;gap:20px;background:linear-gradient(180deg,rgba(0,0,0,.8) 0%,transparent)}
 .watch-nav h1{font-size:20px;font-weight:800;background:linear-gradient(135deg,#e50914,#ff4d4d);-webkit-background-clip:text;-webkit-text-fill-color:transparent;cursor:pointer}
 .watch-nav .back{background:rgba(255,255,255,.1);border:none;color:#fff;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:14px;display:flex;align-items:center;gap:6px}
 .watch-nav .back:hover{background:rgba(255,255,255,.2)}
-.watch video{width:100%;max-height:80vh;background:#000;display:block;outline:none}
 .watch-details{padding:32px 48px 48px;max-width:900px;margin:0 auto}
 .watch-details h2{font-size:28px;font-weight:700;margin-bottom:8px}
 .watch-details .meta{display:flex;gap:14px;align-items:center;flex-wrap:wrap;font-size:14px;margin-bottom:16px}
@@ -72,6 +71,31 @@ header nav a:hover{color:#fff}
 .watch-actions .btn-dl{background:rgba(255,255,255,.1);color:#fff}
 .watch-actions .btn-dl:hover{background:rgba(255,255,255,.18)}
 
+/* Custom Video Player */
+.video-container{position:relative;width:100%;background:#000;cursor:pointer}
+.video-container video{width:100%;max-height:80vh;display:block;outline:none}
+.video-container .controls{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(0deg,rgba(0,0,0,.85) 0%,transparent);padding:60px 20px 16px;opacity:0;transition:opacity .3s;cursor:default}
+.video-container:hover .controls,.video-container .controls.show{opacity:1}
+.controls .progress{width:100%;height:5px;background:rgba(255,255,255,.2);border-radius:3px;cursor:pointer;margin-bottom:12px;position:relative}
+.controls .progress:hover{height:7px}
+.controls .progress .fill{height:100%;background:#e50914;border-radius:3px;position:relative;transition:width .1s linear}
+.controls .progress .fill::after{content:'';position:absolute;right:-6px;top:50%;transform:translateY(-50%);width:12px;height:12px;border-radius:50%;background:#e50914;opacity:0;transition:opacity .15s}
+.controls .progress:hover .fill::after{opacity:1}
+.controls .bar{display:flex;align-items:center;justify-content:space-between}
+.controls .left,.controls .right{display:flex;align-items:center;gap:12px}
+.controls button{background:none;border:none;color:#fff;cursor:pointer;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:4px;font-size:18px;transition:background .15s}
+.controls button:hover{background:rgba(255,255,255,.12)}
+.controls .time{font-size:13px;color:#ccc;font-variant-numeric:tabular-nums;user-select:none}
+.controls .speed-btn{font-size:12px;font-weight:700;width:auto;padding:0 8px}
+.controls input[type=range]{width:60px;height:4px;-webkit-appearance:none;appearance:none;background:rgba(255,255,255,.3);border-radius:2px;outline:none;cursor:pointer}
+.controls input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:12px;height:12px;border-radius:50%;background:#fff;cursor:pointer}
+.controls .skip-btn{font-size:14px;font-weight:700}
+.center-play{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:64px;height:64px;border-radius:50%;background:rgba(229,9,20,.85);display:flex;align-items:center;justify-content:center;font-size:26px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:5}
+.center-play.show{opacity:1}
+.video-container.paused .center-play{opacity:1}
+.skip-indicator{position:absolute;bottom:100px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.7);padding:6px 14px;border-radius:6px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:5;white-space:nowrap}
+.skip-indicator.show{opacity:1}
+
 /* Loading / Empty */
 .loading{display:flex;align-items:center;justify-content:center;min-height:80vh;color:#555;font-size:18px}
 .error{padding:40px 20px;text-align:center;color:#e50914}
@@ -80,6 +104,7 @@ header nav a:hover{color:#fff}
 @media(max-width:768px){
 header{padding:0 20px}.hero{padding:0 20px 80px;min-height:400px}.hero-content h2{font-size:32px}.section{padding:24px 20px 0}.grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
 .watch-nav{padding:12px 16px}.watch-details{padding:20px 16px 32px}.watch-details h2{font-size:22px}
+.controls .bar{gap:8px}.controls .left{gap:6px}.controls button{width:32px;height:32px;font-size:16px}.controls input[type=range]{width:40px}
 }
 </style>
 </head>
@@ -94,31 +119,16 @@ header{padding:0 20px}.hero{padding:0 20px 80px;min-height:400px}.hero-content h
 const API = '/api';
 let series = [];
 
-function escape(s) {
-  if (!s) return '';
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-function fmtSize(b) {
-  if (!b) return ''; const g = b/1e9; return g > 1 ? `${g.toFixed(1)} GB` : `${(b/1e6).toFixed(0)} MB`;
-}
-
-function fmtDur(s) {
-  if (!s) return ''; const h = Math.floor(s/3600), m = Math.floor((s%3600)/60); return h ? `${h}h ${m}m` : `${m}m`;
-}
-
-function fmtTitle(raw) {
-  return (raw||'').replace(/[─✯▶📺🗓💿👥@\w\d]/g,'').replace(/\s{2,}/g,' ').trim().split('\n')[0] || 'Untitled';
-}
-
-function trunc(s, n=160) { return s && s.length > n ? s.slice(0,n)+'…' : s; }
+function esc(s) { return s ? s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') : ''; }
+function fmtSize(b) { if(!b) return ''; const g=b/1e9; return g>1 ? `${g.toFixed(1)} GB` : `${(b/1e6).toFixed(0)} MB`; }
+function fmtDur(s) { if(!s) return ''; const h=Math.floor(s/3600),m=Math.floor((s%3600)/60); return h ? `${h}h ${m}m` : `${m}m`; }
+function fmtTitle(raw) { return (raw||'').replace(/[─✯▶📺🗓💿👥@\w\d]/g,'').replace(/\s{2,}/g,' ').trim().split('\n')[0]||'Untitled'; }
+function trunc(s,n=160) { return s&&s.length>n ? s.slice(0,n)+'…' : s; }
+function fmtTime(t) { if(!t||!isFinite(t)) return '0:00'; const h=Math.floor(t/3600),m=Math.floor((t%3600)/60),s=Math.floor(t%60); return h ? `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}` : `${m}:${String(s).padStart(2,'0')}`; }
 
 const app = document.getElementById('app');
 const header = document.getElementById('header');
-
-window.addEventListener('scroll', () => {
-  header.classList.toggle('scrolled', window.scrollY > 40);
-});
+window.addEventListener('scroll', () => header.classList.toggle('scrolled', window.scrollY > 40));
 
 function navigate(page, id) {
   if (page === 'home') renderHome();
@@ -131,31 +141,20 @@ async function load() {
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
     series = await r.json();
     renderHome();
-  } catch (e) {
-    app.innerHTML = `<div class="error">Failed to load: ${e.message}</div>`;
-  }
+  } catch (e) { app.innerHTML = `<div class="error">Failed to load: ${e.message}</div>`; }
 }
 
 function renderHome() {
   document.title = 'StreamGram';
   header.style.background = '';
-  if (!series.length) {
-    app.innerHTML = '<div class="empty"><p>No content yet</p></div>';
-    return;
-  }
-
+  if (!series.length) { app.innerHTML = '<div class="empty"><p>No content yet</p></div>'; return; }
   const f = series[0];
   app.innerHTML = `
     <div class="hero">
       <div class="hero-content">
-        <h2>${escape(fmtTitle(f.title))}</h2>
-        <div class="hero-meta">
-          <span class="match">98% Match</span>
-          <span>${fmtDur(f.duration)}</span>
-          <span>${fmtSize(f.fileSize)}</span>
-          <span class="badge">HD</span>
-        </div>
-        <p>${escape(trunc(f.description, 200))}</p>
+        <h2>${esc(fmtTitle(f.title))}</h2>
+        <div class="hero-meta"><span class="match">98% Match</span><span>${fmtDur(f.duration)}</span><span>${fmtSize(f.fileSize)}</span><span class="badge">HD</span></div>
+        <p>${esc(trunc(f.description,200))}</p>
         <div class="hero-actions">
           <button class="btn-play" onclick="navigate('watch',${f.id})">▶ Play</button>
           <button class="btn-download" onclick="download(${f.id})">⬇ Download</button>
@@ -166,48 +165,156 @@ function renderHome() {
       <div class="section-header"><h3>Continue Watching</h3><a href="#">View All</a></div>
       <div class="grid">${series.map(s => `
         <div class="card" onclick="navigate('watch',${s.id})">
-          <div class="card-poster">
-            ${s.posterUrl ? `<img src="${s.posterUrl}" alt="" loading="lazy">` : '<span class="p-fallback">🎬</span>'}
-            <div class="overlay"><div class="play-circle">▶</div></div>
-          </div>
-          <div class="card-body"><h4>${escape(fmtTitle(s.title))}</h4><div class="meta"><span>${fmtDur(s.duration)}</span><span>${fmtSize(s.fileSize)}</span></div></div>
+          <div class="card-poster">${s.posterUrl ? `<img src="${s.posterUrl}" alt="" loading="lazy">` : '<span class="p-fallback">🎬</span>'}<div class="overlay"><div class="play-circle">▶</div></div></div>
+          <div class="card-body"><h4>${esc(fmtTitle(s.title))}</h4><div class="meta"><span>${fmtDur(s.duration)}</span><span>${fmtSize(s.fileSize)}</span></div></div>
         </div>`).join('')}
       </div>
     </div>`;
 }
 
+let currentVideo = null;
+let controlsTimeout = null;
+
+function setupPlayer(video, container) {
+  currentVideo = video;
+  const controls = container.querySelector('.controls');
+  const playBtn = container.querySelector('.play-btn');
+  const centerPlay = container.querySelector('.center-play');
+  const progress = container.querySelector('.progress');
+  const fill = container.querySelector('.fill');
+  const current = container.querySelector('.current-time');
+  const total = container.querySelector('.total-time');
+  const volume = container.querySelector('.volume-slider');
+  const speedBtn = container.querySelector('.speed-btn');
+  const skipFwd = container.querySelector('.skip-fwd');
+  const skipBack = container.querySelector('.skip-back');
+  const skipInd = container.querySelector('.skip-indicator');
+
+  function showControls() {
+    controls.classList.add('show');
+    clearTimeout(controlsTimeout);
+    controlsTimeout = setTimeout(() => { if (!video.paused) controls.classList.remove('show'); }, 3000);
+  }
+  function togglePlay() {
+    if (video.paused) { video.play(); centerPlay.classList.remove('show'); }
+    else { video.pause(); centerPlay.classList.add('show'); }
+    showControls();
+  }
+  function updateTime() {
+    fill.style.width = video.duration ? `${(video.currentTime / video.duration) * 100}%` : '0%';
+    current.textContent = fmtTime(video.currentTime);
+    total.textContent = video.duration ? fmtTime(video.duration) : '0:00';
+  }
+  function skip(sec) {
+    video.currentTime = Math.max(0, Math.min(video.duration || 0, video.currentTime + sec));
+    skipInd.textContent = `${sec > 0 ? '+' : ''}${sec}s`;
+    skipInd.classList.add('show');
+    clearTimeout(skipInd._t);
+    skipInd._t = setTimeout(() => skipInd.classList.remove('show'), 800);
+    showControls();
+  }
+
+  video.addEventListener('timeupdate', updateTime);
+  video.addEventListener('loadedmetadata', updateTime);
+  video.addEventListener('play', () => { container.classList.remove('paused'); showControls(); });
+  video.addEventListener('pause', () => container.classList.add('paused'));
+
+  container.addEventListener('click', (e) => { if (e.target.closest('.controls')) return; togglePlay(); });
+  playBtn.addEventListener('click', (e) => { e.stopPropagation(); togglePlay(); });
+  centerPlay.addEventListener('click', () => togglePlay());
+  skipBack.addEventListener('click', (e) => { e.stopPropagation(); skip(-10); });
+  skipFwd.addEventListener('click', (e) => { e.stopPropagation(); skip(10); });
+
+  progress.addEventListener('click', (e) => {
+    const rect = progress.getBoundingClientRect();
+    const pct = (e.clientX - rect.left) / rect.width;
+    video.currentTime = pct * (video.duration || 0);
+    showControls();
+  });
+
+  volume.addEventListener('input', () => { video.volume = volume.value; });
+  video.addEventListener('volumechange', () => { volume.value = video.volume; });
+
+  let speedIdx = 0;
+  const speeds = [1, 1.25, 1.5, 1.75, 2, 0.5, 0.75];
+  speedBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    speedIdx = (speedIdx + 1) % speeds.length;
+    video.playbackRate = speeds[speedIdx];
+    speedBtn.textContent = `${speeds[speedIdx]}×`;
+    showControls();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (document.activeElement?.tagName === 'INPUT') return;
+    if (!container.isConnected) return;
+    switch(e.code) {
+      case 'Space': e.preventDefault(); togglePlay(); break;
+      case 'ArrowLeft': skip(-10); break;
+      case 'ArrowRight': skip(10); break;
+      case 'KeyF':
+        if (document.fullscreenElement) document.exitFullscreen();
+        else container.requestFullscreen?.();
+        break;
+      case 'KeyM': video.muted = !video.muted; break;
+    }
+  });
+
+  updateTime();
+  showControls();
+}
+
 function renderWatch(id) {
   const s = series.find(x => x.id === id);
   if (!s) { app.innerHTML = '<div class="error">Not found</div>'; return; }
-
   document.title = fmtTitle(s.title);
   header.style.background = '#0f0f0f';
   header.classList.add('scrolled');
-
   app.innerHTML = `
     <div class="watch">
       <div class="watch-nav">
         <button class="back" onclick="navigate('home')">← Back</button>
         <h1 onclick="navigate('home')">StreamGram</h1>
       </div>
-      <video controls autoplay preload="metadata"><source src="/api/download/${id}" type="video/mp4"></video>
-      <div class="watch-details">
-        <h2>${escape(fmtTitle(s.title))}</h2>
-        <div class="meta">
-          <span class="match">98% Match</span>
-          <span>${fmtDur(s.duration)}</span>
-          <span>${fmtSize(s.fileSize)}</span>
-          <span class="badge">HD</span>
+      <div class="video-container paused">
+        <div class="center-play">▶</div>
+        <div class="skip-indicator"></div>
+        <video preload="metadata"><source src="/api/download/${id}" type="video/mp4"></video>
+        <div class="controls">
+          <div class="progress"><div class="fill"></div></div>
+          <div class="bar">
+            <div class="left">
+              <button class="play-btn">▶</button>
+              <button class="skip-btn skip-back">↺10</button>
+              <button class="skip-btn skip-fwd">↻10</button>
+              <span class="time"><span class="current-time">0:00</span> / <span class="total-time">0:00</span></span>
+            </div>
+            <div class="right">
+              <button class="speed-btn">1×</button>
+              <input class="volume-slider" type="range" min="0" max="1" step="0.05" value="1">
+              <button onclick="document.querySelector('.video-container video')?.requestFullscreen?.()">⛶</button>
+            </div>
+          </div>
         </div>
-        <p>${escape(s.description || '')}</p>
+      </div>
+      <div class="watch-details">
+        <h2>${esc(fmtTitle(s.title))}</h2>
+        <div class="meta"><span class="match">98% Match</span><span>${fmtDur(s.duration)}</span><span>${fmtSize(s.fileSize)}</span><span class="badge">HD</span></div>
+        <p>${esc(s.description || '')}</p>
         <div class="watch-actions">
-          <button class="btn-play" onclick="document.querySelector('.watch video').play()">▶ Resume</button>
+          <button class="btn-play" onclick="document.querySelector('.video-container video')?.play()">▶ Resume</button>
           <button class="btn-dl" onclick="download(${id})">⬇ Download</button>
         </div>
       </div>
     </div>`;
 
   window.scrollTo(0, 0);
+  const video = document.querySelector('.video-container video');
+  const container = document.querySelector('.video-container');
+  if (video && container) {
+    video.addEventListener('canplay', () => setupPlayer(video, container), { once: true });
+    if (video.readyState >= 3) setupPlayer(video, container);
+  }
 }
 
 function download(id) {
