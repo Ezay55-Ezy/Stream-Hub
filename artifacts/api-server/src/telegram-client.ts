@@ -152,6 +152,7 @@ class TelegramClientManager {
   }
 
   async verifyCode(phone: string, phoneCodeHash: string, code: string): Promise<string> {
+    if (!this.client.connected) await this.client.connect();
     await this.client.invoke(
       new Api.auth.SignIn({
         phoneNumber: phone,
@@ -174,6 +175,7 @@ class TelegramClientManager {
 
   async verifyPassword(password: string): Promise<string> {
     if (!this.phone) throw new Error("No phone number from previous step");
+    if (!this.client.connected) await this.client.connect();
 
     const passwordInfo = await this.client.invoke(
       new Api.account.GetPassword()
