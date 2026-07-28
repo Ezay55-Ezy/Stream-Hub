@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>StreamGram</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#141414;color:#eee;font-family:-apple-system,system-ui,sans-serif}
+header{background:#1f1f1f;padding:16px 24px;border-bottom:1px solid #333;display:flex;align-items:center;gap:12px}
+header h1{font-size:20px;color:#e50914}
+.container{max-width:800px;margin:0 auto;padding:24px}
+.card{background:#1f1f1f;border-radius:8px;overflow:hidden;margin-bottom:24px}
+.card img{width:100%;height:auto;max-height:400px;object-fit:contain;background:#000}
+.card-body{padding:16px}
+.card-body h2{font-size:18px;margin-bottom:8px}
+.card-body p{color:#999;font-size:14px;margin-bottom:12px;line-height:1.5}
+.meta{display:flex;gap:16px;font-size:13px;color:#666;margin-bottom:12px}
+.btn{padding:10px 24px;background:#e50914;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:14px;font-weight:600}
+.btn:hover{background:#f6121d}
+.btn:disabled{background:#555;cursor:not-allowed}
+video{width:100%;max-height:500px;background:#000;border-radius:4px}
+.loading{text-align:center;padding:48px;color:#666}
+.error{text-align:center;padding:24px;color:#e50914}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<header><h1>StreamGram</h1></header>
+<div class="container" id="app">
+  <div class="loading">Loading...</div>
+</div>
+
+<script>
+const API = '/api';
+let seriesList = [];
+
+async function load() {
+  try {
+    const res = await fetch(`${API}/series`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    seriesList = await res.json();
+    render();
+  } catch (e) {
+    document.getElementById('app').innerHTML = `<div class="error">Failed to load: ${e.message}</div>`;
+  }
+}
+
+function formatSize(bytes) {
+  if (!bytes) return 'Unknown';
+  const gb = bytes / 1e9;
+  return gb > 1 ? `${gb.toFixed(1)} GB` : `${(bytes/1e6).toFixed(0)} MB`;
+}
+
+function formatDuration(sec) {
+  if (!sec) return 'Unknown';
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  return h ? `${h}h ${m}m` : `${m}m`;
+}
+
+function render() {
+  const app = document.getElementById('app');
+  if (!seriesList.length) {
+    app.innerHTML = '<div class="loading">No content yet</div>';
+    return;
+  }
+  app.innerHTML = seriesList.map(s => `
+    <div class="card">
+      ${s.posterUrl ? `<img src="${s.posterUrl}" alt="${s.title}" loading="lazy">` : ''}
+      <div class="card-body">
+        <h2>${s.title}</h2>
+        <p>${s.description || ''}</p>
+        <div class="meta">
+          <span>${formatSize(s.fileSize)}</span>
+          <span>${formatDuration(s.duration)}</span>
+        </div>
+        <button class="btn" onclick="play('${s.id}')">▶ Play</button>
+        <div id="player-${s.id}" class="hidden" style="margin-top:12px"></div>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function play(id) {
+  const playerDiv = document.getElementById(`player-${id}`);
+  if (playerDiv.innerHTML) {
+    playerDiv.classList.toggle('hidden');
+    return;
+  }
+  try {
+    const res = await fetch(`${API}/download/${id}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    playerDiv.innerHTML = `<video controls autoplay preload="metadata" style="width:100%"><source src="${data.url}" type="video/mp4"></video>`;
+    playerDiv.classList.remove('hidden');
+  } catch (e) {
+    playerDiv.innerHTML = `<div class="error">Playback failed: ${e.message}</div>`;
+    playerDiv.classList.remove('hidden');
+  }
+}
+
+load();
+</script>
+</body>
+</html>
