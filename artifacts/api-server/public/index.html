@@ -6,189 +6,217 @@
 <title>StreamGram</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:#0f0f0f;color:#fff;font-family:-apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;overflow-x:hidden}
-header{position:fixed;top:0;left:0;right:0;z-index:100;padding:0 48px;height:64px;display:flex;align-items:center;background:linear-gradient(180deg,rgba(15,15,15,.98) 0%,rgba(15,15,15,.9) 80%,transparent);backdrop-filter:blur(12px)}
-header h1{font-size:24px;font-weight:700;background:linear-gradient(135deg,#e50914,#ff4d4d);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-.5px}
-.hero{position:relative;height:70vh;min-height:480px;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);display:flex;align-items:flex-end;padding:0 48px 80px;margin-bottom:-80px}
-.hero::after{content:'';position:absolute;inset:0;background:linear-gradient(0deg,#0f0f0f 0%,transparent 50%,rgba(15,15,15,.4) 100%)}
-.hero-content{position:relative;z-index:2;max-width:640px}
-.hero-content h2{font-size:48px;font-weight:800;line-height:1.1;margin-bottom:8px;letter-spacing:-1px}
-.hero-content .tagline{font-size:18px;color:#aaa;margin-bottom:20px;line-height:1.5}
-.hero-meta{display:flex;gap:12px;align-items:center;margin-bottom:20px;flex-wrap:wrap}
-.hero-meta span{font-size:14px;color:#999}
-.match{color:#46d369;font-weight:700}
-.badge{padding:2px 8px;border:1px solid #666;border-radius:2px;font-size:11px;text-transform:uppercase;color:#ccc}
-.hero-btn{padding:12px 32px;border:none;border-radius:6px;font-size:16px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:10px;transition:transform .15s,opacity .15s}
-.hero-btn:hover{transform:scale(1.04)}
-.hero-btn.primary{background:#e50914;color:#fff}
-.hero-btn.primary:hover{background:#f6121d}
-.hero-btn.secondary{background:rgba(255,255,255,.1);color:#fff;backdrop-filter:blur(4px)}
-.hero-btn.secondary:hover{background:rgba(255,255,255,.2)}
-.section{padding:48px 48px 0}
-.section h3{font-size:20px;font-weight:700;margin-bottom:16px}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;padding-bottom:48px}
-.card{position:relative;background:#1a1a1a;border-radius:8px;overflow:hidden;cursor:pointer;transition:transform .2s,box-shadow .2s}
-.card:hover{transform:translateY(-4px);box-shadow:0 8px 24px rgba(0,0,0,.5)}
-.card-poster{aspect-ratio:2/3;background:#2a2a2a;display:flex;align-items:center;justify-content:center;overflow:hidden}
+body{background:#0f0f0f;color:#fff;font-family:-apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;overflow-x:hidden;min-height:100vh}
+a{color:inherit;text-decoration:none}
+
+/* Header */
+header{position:fixed;top:0;left:0;right:0;z-index:100;padding:0 48px;height:64px;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(180deg,rgba(15,15,15,.98) 0%,transparent);transition:background .3s}
+header.scrolled{background:#0f0f0f;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+header h1{font-size:22px;font-weight:800;background:linear-gradient(135deg,#e50914,#ff4d4d);-webkit-background-clip:text;-webkit-text-fill-color:transparent;cursor:pointer;letter-spacing:-.5px}
+header nav{display:flex;gap:24px;align-items:center}
+header nav a{font-size:14px;color:#aaa;transition:color .2s}
+header nav a:hover{color:#fff}
+
+/* Hero */
+.hero{position:relative;height:75vh;min-height:500px;background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460);display:flex;align-items:flex-end;padding:0 48px 100px}
+.hero::after{content:'';position:absolute;inset:0;background:linear-gradient(0deg,#0f0f0f 0%,transparent 60%,rgba(15,15,15,.4) 100%)}
+.hero-content{position:relative;z-index:2;max-width:680px}
+.hero-content h2{font-size:52px;font-weight:800;line-height:1.1;margin-bottom:10px;letter-spacing:-1px}
+.hero-content p{font-size:17px;color:#bbb;line-height:1.6;margin-bottom:20px}
+.hero-meta{display:flex;gap:14px;align-items:center;margin-bottom:20px;flex-wrap:wrap;font-size:14px}
+.hero-meta .match{color:#46d369;font-weight:700}
+.hero-meta .badge{padding:2px 8px;border:1px solid #555;border-radius:3px;font-size:11px;text-transform:uppercase;color:#ccc}
+.hero-actions{display:flex;gap:12px}
+.hero-actions button{display:inline-flex;align-items:center;gap:10px;padding:12px 28px;border:none;border-radius:6px;font-size:16px;font-weight:700;cursor:pointer;transition:transform .15s}
+.hero-actions button:hover{transform:scale(1.04)}
+.btn-play{background:#e50914;color:#fff}
+.btn-download{background:rgba(255,255,255,.12);color:#fff;backdrop-filter:blur(4px)}
+.btn-download:hover{background:rgba(255,255,255,.2)}
+
+/* Grid Section */
+.section{padding:40px 48px 0}
+.section-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.section-header h3{font-size:20px;font-weight:700}
+.section-header a{font-size:14px;color:#aaa}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;padding-bottom:48px}
+.card{position:relative;border-radius:8px;overflow:hidden;cursor:pointer;background:#1a1a1a;transition:transform .2s}
+.card:hover{transform:translateY(-6px)}
+.card-poster{aspect-ratio:2/3;background:#222;display:flex;align-items:center;justify-content:center;overflow:hidden}
 .card-poster img{width:100%;height:100%;object-fit:cover;transition:transform .3s}
-.card:hover .card-poster img{transform:scale(1.05)}
-.card-poster .placeholder{font-size:48px;opacity:.2}
-.card-body{padding:14px}
-.card-body h4{font-size:14px;font-weight:600;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.card-body .meta{font-size:12px;color:#888;display:flex;gap:8px}
-.card .play-overlay{position:absolute;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s}
-.card:hover .play-overlay{opacity:1}
-.play-icon{width:56px;height:56px;border-radius:50%;background:#e50914;display:flex;align-items:center;justify-content:center;font-size:22px;transition:transform .15s}
-.card:hover .play-icon{transform:scale(1.1)}
-.player-wrapper{position:relative;background:#000;border-radius:8px;overflow:hidden;margin-top:16px;max-height:0;transition:max-height .4s ease}
-.player-wrapper.open{max-height:600px}
-.player-wrapper video{width:100%;display:block;max-height:600px}
-.player-wrapper .close-btn{position:absolute;top:12px;right:12px;z-index:10;width:36px;height:36px;border-radius:50%;background:rgba(0,0,0,.7);border:none;color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s}
-.player-wrapper:hover .close-btn{opacity:1}
-.loading{text-align:center;padding:80px 20px;color:#555;font-size:18px}
-.error{text-align:center;padding:40px 20px;color:#e50914;font-size:16px}
+.card:hover .card-poster img{transform:scale(1.06)}
+.card-poster .p-fallback{font-size:40px;opacity:.15;user-select:none}
+.card-body{padding:12px}
+.card-body h4{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card-body .meta{font-size:12px;color:#777;display:flex;gap:8px;margin-top:2px}
+.card .overlay{position:absolute;inset:0;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s}
+.card:hover .overlay{opacity:1}
+.card .overlay .play-circle{width:52px;height:52px;border-radius:50%;background:#e50914;display:flex;align-items:center;justify-content:center;font-size:20px;transition:transform .15s}
+.card:hover .overlay .play-circle{transform:scale(1.12)}
+
+/* Watch Page */
+.watch{min-height:100vh;background:#000}
+.watch-nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:16px 48px;display:flex;align-items:center;gap:20px}
+.watch-nav h1{font-size:20px;font-weight:800;background:linear-gradient(135deg,#e50914,#ff4d4d);-webkit-background-clip:text;-webkit-text-fill-color:transparent;cursor:pointer}
+.watch-nav .back{background:rgba(255,255,255,.1);border:none;color:#fff;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:14px;display:flex;align-items:center;gap:6px}
+.watch-nav .back:hover{background:rgba(255,255,255,.2)}
+.watch video{width:100%;max-height:80vh;background:#000;display:block;outline:none}
+.watch-details{padding:32px 48px 48px;max-width:900px;margin:0 auto}
+.watch-details h2{font-size:28px;font-weight:700;margin-bottom:8px}
+.watch-details .meta{display:flex;gap:14px;align-items:center;flex-wrap:wrap;font-size:14px;margin-bottom:16px}
+.watch-details .meta .match{color:#46d369;font-weight:700}
+.watch-details .meta .badge{padding:2px 8px;border:1px solid #555;border-radius:3px;font-size:11px;text-transform:uppercase;color:#ccc}
+.watch-details p{color:#aaa;font-size:15px;line-height:1.7;margin-bottom:20px}
+.watch-actions{display:flex;gap:12px}
+.watch-actions button{display:inline-flex;align-items:center;gap:8px;padding:10px 24px;border:none;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer;transition:transform .15s}
+.watch-actions button:hover{transform:scale(1.04)}
+.watch-actions .btn-dl{background:rgba(255,255,255,.1);color:#fff}
+.watch-actions .btn-dl:hover{background:rgba(255,255,255,.18)}
+
+/* Loading / Empty */
+.loading{display:flex;align-items:center;justify-content:center;min-height:80vh;color:#555;font-size:18px}
+.error{padding:40px 20px;text-align:center;color:#e50914}
 .empty{text-align:center;padding:80px 20px;color:#555}
-.empty p{font-size:18px;margin-bottom:8px}
-.empty small{color:#444}
-@media(max-width:768px){header{padding:0 20px}.hero{padding:0 20px 60px;min-height:360px}.hero-content h2{font-size:32px}.section{padding:32px 20px 0}.grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}.card-body{padding:10px}.card-body h4{font-size:13px}}
+
+@media(max-width:768px){
+header{padding:0 20px}.hero{padding:0 20px 80px;min-height:400px}.hero-content h2{font-size:32px}.section{padding:24px 20px 0}.grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.watch-nav{padding:12px 16px}.watch-details{padding:20px 16px 32px}.watch-details h2{font-size:22px}
+}
 </style>
 </head>
 <body>
-<header><h1>StreamGram</h1></header>
-<div id="app">
-  <div class="loading">Loading...</div>
-</div>
+<header id="header">
+  <h1 onclick="navigate('home')">StreamGram</h1>
+  <nav><a href="#">Home</a><a href="#">Trending</a></nav>
+</header>
+<div id="app"></div>
 
 <script>
 const API = '/api';
+let series = [];
 
-function formatSize(bytes) {
-  if (!bytes) return '';
-  const gb = bytes / 1e9;
-  return gb > 1 ? `${gb.toFixed(1)} GB` : `${(bytes/1e6).toFixed(0)} MB`;
-}
-
-function formatDuration(sec) {
-  if (!sec) return '';
-  const h = Math.floor(sec / 3600);
-  const m = Math.floor((sec % 3600) / 60);
-  return h ? `${h}h ${m}m` : `${m}m`;
-}
-
-function truncate(s, n=120) {
-  return s && s.length > n ? s.slice(0, n) + '...' : s;
-}
-
-function escapeHtml(s) {
+function escape(s) {
   if (!s) return '';
   return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-function formatTitle(raw) {
-  const cleaned = raw
-    .replace(/[─✯▶📺🗓💿👥]/g, '')
-    .replace(/@\w+/g, '')
-    .replace(/\s{2,}/g, ' ')
-    .trim();
-  const lines = cleaned.split('\n').filter(l => l.trim());
-  return lines[0] || 'Untitled';
+function fmtSize(b) {
+  if (!b) return ''; const g = b/1e9; return g > 1 ? `${g.toFixed(1)} GB` : `${(b/1e6).toFixed(0)} MB`;
 }
 
+function fmtDur(s) {
+  if (!s) return ''; const h = Math.floor(s/3600), m = Math.floor((s%3600)/60); return h ? `${h}h ${m}m` : `${m}m`;
+}
+
+function fmtTitle(raw) {
+  return (raw||'').replace(/[─✯▶📺🗓💿👥@\w\d]/g,'').replace(/\s{2,}/g,' ').trim().split('\n')[0] || 'Untitled';
+}
+
+function trunc(s, n=160) { return s && s.length > n ? s.slice(0,n)+'…' : s; }
+
 const app = document.getElementById('app');
+const header = document.getElementById('header');
+
+window.addEventListener('scroll', () => {
+  header.classList.toggle('scrolled', window.scrollY > 40);
+});
+
+function navigate(page, id) {
+  if (page === 'home') renderHome();
+  else if (page === 'watch') renderWatch(id);
+}
 
 async function load() {
   try {
-    const res = await fetch(`${API}/series`);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const series = await res.json();
-    render(series);
+    const r = await fetch(`${API}/series`);
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    series = await r.json();
+    renderHome();
   } catch (e) {
     app.innerHTML = `<div class="error">Failed to load: ${e.message}</div>`;
   }
 }
 
-function render(series) {
+function renderHome() {
+  document.title = 'StreamGram';
+  header.style.background = '';
   if (!series.length) {
-    app.innerHTML = '<div class="empty"><p>No content yet</p><small>Sync videos from Telegram Saved Messages to get started.</small></div>';
+    app.innerHTML = '<div class="empty"><p>No content yet</p></div>';
     return;
   }
 
-  const featured = series[0];
-  const rest = series.slice(1);
-
+  const f = series[0];
   app.innerHTML = `
     <div class="hero">
       <div class="hero-content">
-        <h2>${escapeHtml(formatTitle(featured.title))}</h2>
+        <h2>${escape(fmtTitle(f.title))}</h2>
         <div class="hero-meta">
           <span class="match">98% Match</span>
-          <span>${formatDuration(featured.duration)}</span>
-          <span>${formatSize(featured.fileSize)}</span>
+          <span>${fmtDur(f.duration)}</span>
+          <span>${fmtSize(f.fileSize)}</span>
           <span class="badge">HD</span>
         </div>
-        <p class="tagline">${escapeHtml(truncate(featured.description, 200))}</p>
-        <button class="hero-btn primary" onclick="play(${featured.id})">▶ Play</button>
-        <button class="hero-btn secondary" onclick="play(${featured.id})">ⓘ More Info</button>
+        <p>${escape(trunc(f.description, 200))}</p>
+        <div class="hero-actions">
+          <button class="btn-play" onclick="navigate('watch',${f.id})">▶ Play</button>
+          <button class="btn-download" onclick="download(${f.id})">⬇ Download</button>
+        </div>
       </div>
     </div>
     <div class="section">
-      <h3>Continue Watching</h3>
-      <div class="grid">
-        ${series.map(s => `
-          <div class="card" onclick="play(${s.id})" data-id="${s.id}">
-            <div class="card-poster">
-              ${s.posterUrl ? `<img src="${s.posterUrl}" alt="" loading="lazy">` : '<span class="placeholder">🎬</span>'}
-              <div class="play-overlay"><div class="play-icon">▶</div></div>
-            </div>
-            <div class="card-body">
-              <h4>${escapeHtml(formatTitle(s.title))}</h4>
-              <div class="meta">
-                <span>${formatDuration(s.duration)}</span>
-                <span>${formatSize(s.fileSize)}</span>
-              </div>
-            </div>
+      <div class="section-header"><h3>Continue Watching</h3><a href="#">View All</a></div>
+      <div class="grid">${series.map(s => `
+        <div class="card" onclick="navigate('watch',${s.id})">
+          <div class="card-poster">
+            ${s.posterUrl ? `<img src="${s.posterUrl}" alt="" loading="lazy">` : '<span class="p-fallback">🎬</span>'}
+            <div class="overlay"><div class="play-circle">▶</div></div>
           </div>
-        `).join('')}
+          <div class="card-body"><h4>${escape(fmtTitle(s.title))}</h4><div class="meta"><span>${fmtDur(s.duration)}</span><span>${fmtSize(s.fileSize)}</span></div></div>
+        </div>`).join('')}
       </div>
-    </div>
-    <div id="player-container" style="padding:0 48px 48px"></div>
-  `;
+    </div>`;
 }
 
-function scrollToPlayer() {
-  const container = document.getElementById('player-container');
-  if (container) container.scrollIntoView({ behavior: 'smooth', block: 'center' });
+function renderWatch(id) {
+  const s = series.find(x => x.id === id);
+  if (!s) { app.innerHTML = '<div class="error">Not found</div>'; return; }
+
+  document.title = fmtTitle(s.title);
+  header.style.background = '#0f0f0f';
+  header.classList.add('scrolled');
+
+  app.innerHTML = `
+    <div class="watch">
+      <div class="watch-nav">
+        <button class="back" onclick="navigate('home')">← Back</button>
+        <h1 onclick="navigate('home')">StreamGram</h1>
+      </div>
+      <video controls autoplay preload="metadata"><source src="/api/download/${id}" type="video/mp4"></video>
+      <div class="watch-details">
+        <h2>${escape(fmtTitle(s.title))}</h2>
+        <div class="meta">
+          <span class="match">98% Match</span>
+          <span>${fmtDur(s.duration)}</span>
+          <span>${fmtSize(s.fileSize)}</span>
+          <span class="badge">HD</span>
+        </div>
+        <p>${escape(s.description || '')}</p>
+        <div class="watch-actions">
+          <button class="btn-play" onclick="document.querySelector('.watch video').play()">▶ Resume</button>
+          <button class="btn-dl" onclick="download(${id})">⬇ Download</button>
+        </div>
+      </div>
+    </div>`;
+
+  window.scrollTo(0, 0);
 }
 
-async function play(id) {
-  const container = document.getElementById('player-container');
-  if (!container) return;
-
-  if (container.dataset.active === String(id)) {
-    container.innerHTML = '';
-    delete container.dataset.active;
-    return;
-  }
-
-  container.dataset.active = id;
-  container.innerHTML = `
-    <div class="player-wrapper open">
-      <button class="close-btn" onclick="closePlayer()">✕</button>
-      <video controls autoplay preload="metadata">
-        <source src="/api/download/${id}" type="video/mp4">
-      </video>
-    </div>
-  `;
-
-  scrollToPlayer();
-}
-
-function closePlayer() {
-  const container = document.getElementById('player-container');
-  if (container) {
-    container.innerHTML = '';
-    delete container.dataset.active;
-  }
+function download(id) {
+  const a = document.createElement('a');
+  a.href = `/api/download/${id}`;
+  a.download = '';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
 }
 
 load();
