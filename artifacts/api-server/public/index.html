@@ -6,90 +6,189 @@
 <title>StreamGram</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:#141414;color:#eee;font-family:-apple-system,system-ui,sans-serif}
-header{background:#1f1f1f;padding:16px 24px;border-bottom:1px solid #333;display:flex;align-items:center;gap:12px}
-header h1{font-size:20px;color:#e50914}
-.container{max-width:800px;margin:0 auto;padding:24px}
-.card{background:#1f1f1f;border-radius:8px;overflow:hidden;margin-bottom:24px}
-.card img{width:100%;height:auto;max-height:400px;object-fit:contain;background:#000}
-.card-body{padding:16px}
-.card-body h2{font-size:18px;margin-bottom:8px}
-.card-body p{color:#999;font-size:14px;margin-bottom:12px;line-height:1.5}
-.meta{display:flex;gap:16px;font-size:13px;color:#666;margin-bottom:12px}
-.btn{padding:10px 24px;background:#e50914;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:14px;font-weight:600}
-.btn:hover{background:#f6121d}
-.btn:disabled{background:#555;cursor:not-allowed}
-video{width:100%;max-height:500px;background:#000;border-radius:4px}
-.loading{text-align:center;padding:48px;color:#666}
-.error{text-align:center;padding:24px;color:#e50914}
-.hidden{display:none}
+body{background:#0f0f0f;color:#fff;font-family:-apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;overflow-x:hidden}
+header{position:fixed;top:0;left:0;right:0;z-index:100;padding:0 48px;height:64px;display:flex;align-items:center;background:linear-gradient(180deg,rgba(15,15,15,.98) 0%,rgba(15,15,15,.9) 80%,transparent);backdrop-filter:blur(12px)}
+header h1{font-size:24px;font-weight:700;background:linear-gradient(135deg,#e50914,#ff4d4d);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-.5px}
+.hero{position:relative;height:70vh;min-height:480px;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);display:flex;align-items:flex-end;padding:0 48px 80px;margin-bottom:-80px}
+.hero::after{content:'';position:absolute;inset:0;background:linear-gradient(0deg,#0f0f0f 0%,transparent 50%,rgba(15,15,15,.4) 100%)}
+.hero-content{position:relative;z-index:2;max-width:640px}
+.hero-content h2{font-size:48px;font-weight:800;line-height:1.1;margin-bottom:8px;letter-spacing:-1px}
+.hero-content .tagline{font-size:18px;color:#aaa;margin-bottom:20px;line-height:1.5}
+.hero-meta{display:flex;gap:12px;align-items:center;margin-bottom:20px;flex-wrap:wrap}
+.hero-meta span{font-size:14px;color:#999}
+.match{color:#46d369;font-weight:700}
+.badge{padding:2px 8px;border:1px solid #666;border-radius:2px;font-size:11px;text-transform:uppercase;color:#ccc}
+.hero-btn{padding:12px 32px;border:none;border-radius:6px;font-size:16px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:10px;transition:transform .15s,opacity .15s}
+.hero-btn:hover{transform:scale(1.04)}
+.hero-btn.primary{background:#e50914;color:#fff}
+.hero-btn.primary:hover{background:#f6121d}
+.hero-btn.secondary{background:rgba(255,255,255,.1);color:#fff;backdrop-filter:blur(4px)}
+.hero-btn.secondary:hover{background:rgba(255,255,255,.2)}
+.section{padding:48px 48px 0}
+.section h3{font-size:20px;font-weight:700;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;padding-bottom:48px}
+.card{position:relative;background:#1a1a1a;border-radius:8px;overflow:hidden;cursor:pointer;transition:transform .2s,box-shadow .2s}
+.card:hover{transform:translateY(-4px);box-shadow:0 8px 24px rgba(0,0,0,.5)}
+.card-poster{aspect-ratio:2/3;background:#2a2a2a;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.card-poster img{width:100%;height:100%;object-fit:cover;transition:transform .3s}
+.card:hover .card-poster img{transform:scale(1.05)}
+.card-poster .placeholder{font-size:48px;opacity:.2}
+.card-body{padding:14px}
+.card-body h4{font-size:14px;font-weight:600;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card-body .meta{font-size:12px;color:#888;display:flex;gap:8px}
+.card .play-overlay{position:absolute;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s}
+.card:hover .play-overlay{opacity:1}
+.play-icon{width:56px;height:56px;border-radius:50%;background:#e50914;display:flex;align-items:center;justify-content:center;font-size:22px;transition:transform .15s}
+.card:hover .play-icon{transform:scale(1.1)}
+.player-wrapper{position:relative;background:#000;border-radius:8px;overflow:hidden;margin-top:16px;max-height:0;transition:max-height .4s ease}
+.player-wrapper.open{max-height:600px}
+.player-wrapper video{width:100%;display:block;max-height:600px}
+.player-wrapper .close-btn{position:absolute;top:12px;right:12px;z-index:10;width:36px;height:36px;border-radius:50%;background:rgba(0,0,0,.7);border:none;color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s}
+.player-wrapper:hover .close-btn{opacity:1}
+.loading{text-align:center;padding:80px 20px;color:#555;font-size:18px}
+.error{text-align:center;padding:40px 20px;color:#e50914;font-size:16px}
+.empty{text-align:center;padding:80px 20px;color:#555}
+.empty p{font-size:18px;margin-bottom:8px}
+.empty small{color:#444}
+@media(max-width:768px){header{padding:0 20px}.hero{padding:0 20px 60px;min-height:360px}.hero-content h2{font-size:32px}.section{padding:32px 20px 0}.grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}.card-body{padding:10px}.card-body h4{font-size:13px}}
 </style>
 </head>
 <body>
 <header><h1>StreamGram</h1></header>
-<div class="container" id="app">
+<div id="app">
   <div class="loading">Loading...</div>
 </div>
 
 <script>
 const API = '/api';
-let seriesList = [];
-
-async function load() {
-  try {
-    const res = await fetch(`${API}/series`);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    seriesList = await res.json();
-    render();
-  } catch (e) {
-    document.getElementById('app').innerHTML = `<div class="error">Failed to load: ${e.message}</div>`;
-  }
-}
 
 function formatSize(bytes) {
-  if (!bytes) return 'Unknown';
+  if (!bytes) return '';
   const gb = bytes / 1e9;
   return gb > 1 ? `${gb.toFixed(1)} GB` : `${(bytes/1e6).toFixed(0)} MB`;
 }
 
 function formatDuration(sec) {
-  if (!sec) return 'Unknown';
+  if (!sec) return '';
   const h = Math.floor(sec / 3600);
   const m = Math.floor((sec % 3600) / 60);
   return h ? `${h}h ${m}m` : `${m}m`;
 }
 
-function render() {
-  const app = document.getElementById('app');
-  if (!seriesList.length) {
-    app.innerHTML = '<div class="loading">No content yet</div>';
+function truncate(s, n=120) {
+  return s && s.length > n ? s.slice(0, n) + '...' : s;
+}
+
+function escapeHtml(s) {
+  if (!s) return '';
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function formatTitle(raw) {
+  const cleaned = raw
+    .replace(/[─✯▶📺🗓💿👥]/g, '')
+    .replace(/@\w+/g, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+  const lines = cleaned.split('\n').filter(l => l.trim());
+  return lines[0] || 'Untitled';
+}
+
+const app = document.getElementById('app');
+
+async function load() {
+  try {
+    const res = await fetch(`${API}/series`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const series = await res.json();
+    render(series);
+  } catch (e) {
+    app.innerHTML = `<div class="error">Failed to load: ${e.message}</div>`;
+  }
+}
+
+function render(series) {
+  if (!series.length) {
+    app.innerHTML = '<div class="empty"><p>No content yet</p><small>Sync videos from Telegram Saved Messages to get started.</small></div>';
     return;
   }
-  app.innerHTML = seriesList.map(s => `
-    <div class="card">
-      ${s.posterUrl ? `<img src="${s.posterUrl}" alt="${s.title}" loading="lazy">` : ''}
-      <div class="card-body">
-        <h2>${s.title}</h2>
-        <p>${s.description || ''}</p>
-        <div class="meta">
-          <span>${formatSize(s.fileSize)}</span>
-          <span>${formatDuration(s.duration)}</span>
+
+  const featured = series[0];
+  const rest = series.slice(1);
+
+  app.innerHTML = `
+    <div class="hero">
+      <div class="hero-content">
+        <h2>${escapeHtml(formatTitle(featured.title))}</h2>
+        <div class="hero-meta">
+          <span class="match">98% Match</span>
+          <span>${formatDuration(featured.duration)}</span>
+          <span>${formatSize(featured.fileSize)}</span>
+          <span class="badge">HD</span>
         </div>
-        <button class="btn" onclick="play('${s.id}')">▶ Play</button>
-        <div id="player-${s.id}" class="hidden" style="margin-top:12px"></div>
+        <p class="tagline">${escapeHtml(truncate(featured.description, 200))}</p>
+        <button class="hero-btn primary" onclick="play(${featured.id})">▶ Play</button>
+        <button class="hero-btn secondary" onclick="play(${featured.id})">ⓘ More Info</button>
       </div>
     </div>
-  `).join('');
+    <div class="section">
+      <h3>Continue Watching</h3>
+      <div class="grid">
+        ${series.map(s => `
+          <div class="card" onclick="play(${s.id})" data-id="${s.id}">
+            <div class="card-poster">
+              ${s.posterUrl ? `<img src="${s.posterUrl}" alt="" loading="lazy">` : '<span class="placeholder">🎬</span>'}
+              <div class="play-overlay"><div class="play-icon">▶</div></div>
+            </div>
+            <div class="card-body">
+              <h4>${escapeHtml(formatTitle(s.title))}</h4>
+              <div class="meta">
+                <span>${formatDuration(s.duration)}</span>
+                <span>${formatSize(s.fileSize)}</span>
+              </div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+    <div id="player-container" style="padding:0 48px 48px"></div>
+  `;
+}
+
+function scrollToPlayer() {
+  const container = document.getElementById('player-container');
+  if (container) container.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
 async function play(id) {
-  const playerDiv = document.getElementById(`player-${id}`);
-  if (playerDiv.innerHTML) {
-    playerDiv.classList.toggle('hidden');
+  const container = document.getElementById('player-container');
+  if (!container) return;
+
+  if (container.dataset.active === String(id)) {
+    container.innerHTML = '';
+    delete container.dataset.active;
     return;
   }
-  playerDiv.innerHTML = `<video controls preload="metadata" style="width:100%"><source src="/api/download/${id}" type="video/mp4"></video>`;
-  playerDiv.classList.remove('hidden');
+
+  container.dataset.active = id;
+  container.innerHTML = `
+    <div class="player-wrapper open">
+      <button class="close-btn" onclick="closePlayer()">✕</button>
+      <video controls autoplay preload="metadata">
+        <source src="/api/download/${id}" type="video/mp4">
+      </video>
+    </div>
+  `;
+
+  scrollToPlayer();
+}
+
+function closePlayer() {
+  const container = document.getElementById('player-container');
+  if (container) {
+    container.innerHTML = '';
+    delete container.dataset.active;
+  }
 }
 
 load();
