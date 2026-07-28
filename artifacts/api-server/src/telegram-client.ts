@@ -156,8 +156,9 @@ class TelegramClientManager {
   }
 
   async ensureConnected() {
-    if (this.client.connected) await this.client.disconnect();
-    await this.client.connect();
+    if (!this.client.connected) {
+      await this.client.connect();
+    }
   }
 
   async sendCode(phone: string): Promise<string> {
