@@ -309,6 +309,10 @@ class TelegramClientManager {
       return;
     }
 
+    if (!this.client.connected) {
+      await this.client.connect();
+    }
+
     // Fetch the message from Saved Messages
     const messages = await this.client.getMessages("me", { ids: [messageId] });
     const msg = messages[0];
