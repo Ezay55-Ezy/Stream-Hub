@@ -235,6 +235,16 @@ function setupPlayer(video, container) {
   volume.addEventListener('input', () => { video.volume = volume.value; });
   video.addEventListener('volumechange', () => { volume.value = video.volume; });
 
+  const fsBtn = container.querySelector('.fs-btn');
+  fsBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (document.fullscreenElement) document.exitFullscreen();
+    else container.requestFullscreen?.();
+  });
+  document.addEventListener('fullscreenchange', () => {
+    if (document.fullscreenElement === container) controls.classList.add('show');
+  });
+
   let speedIdx = 0;
   const speeds = [1, 1.25, 1.5, 1.75, 2, 0.5, 0.75];
   speedBtn.addEventListener('click', (e) => {
@@ -255,6 +265,7 @@ function setupPlayer(video, container) {
       case 'KeyF':
         if (document.fullscreenElement) document.exitFullscreen();
         else container.requestFullscreen?.();
+        controls.classList.add('show');
         break;
       case 'KeyM': video.muted = !video.muted; break;
     }
@@ -292,7 +303,7 @@ function renderWatch(id) {
             <div class="right">
               <button class="speed-btn">1×</button>
               <input class="volume-slider" type="range" min="0" max="1" step="0.05" value="1">
-              <button onclick="document.querySelector('.video-container video')?.requestFullscreen?.()">⛶</button>
+              <button class="fs-btn">⛶</button>
             </div>
           </div>
         </div>
