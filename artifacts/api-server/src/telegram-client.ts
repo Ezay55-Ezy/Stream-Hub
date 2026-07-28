@@ -339,9 +339,16 @@ class TelegramClientManager {
 
     await this.ensureConnected();
 
-    // Fetch the message from Saved Messages
-    const messages = await this.client.getMessages("me", { ids: [messageId] });
-    const msg = messages[0];
+    // Fetch the message from Saved Messages with timeout
+    const msg = await Promise.race([
+      (async () => {
+        const messages = await this.client.getMessages("me", { ids: [messageId] });
+        return messages[0];
+      })(),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error("getMessages timeout")), 30000)
+      ),
+    ]);
 
     if (!msg?.media || (msg.media as any).className !== "MessageMediaDocument") {
       res.status(404).json({ error: "Media not found in Saved Messages" });
