@@ -6,7 +6,7 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY lib/ lib/
 COPY artifacts/api-server/ artifacts/api-server/
 
-RUN pnpm install --frozen-lockfile && \
+RUN pnpm install --no-frozen-lockfile && \
     pnpm --filter @workspace/api-server run build
 
 ENV NODE_ENV=production
