@@ -73,9 +73,9 @@ class TelegramClientManager {
 
   constructor() {
     this.client = new TelegramClient(new StringSession(""), API_ID, API_HASH, {
-      connectionRetries: 3,
+      connectionRetries: 10,
       connection: ConnectionTCPFull,
-      useWSS: false,
+      useWSS: true,
     });
   }
 
