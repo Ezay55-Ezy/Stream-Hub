@@ -135,8 +135,13 @@ class TelegramClientManager {
     return { authenticated: this.authenticated, phone: this.phone };
   }
 
+  async ensureConnected() {
+    if (this.client.connected) await this.client.disconnect();
+    await this.client.connect();
+  }
+
   async sendCode(phone: string): Promise<string> {
-    if (!this.client.connected) await this.client.connect();
+    await this.ensureConnected();
 
     const result = await this.client.invoke(
       new Api.auth.SendCode({
@@ -152,7 +157,7 @@ class TelegramClientManager {
   }
 
   async verifyCode(phone: string, phoneCodeHash: string, code: string): Promise<string> {
-    if (!this.client.connected) await this.client.connect();
+    await this.ensureConnected();
     await this.client.invoke(
       new Api.auth.SignIn({
         phoneNumber: phone,
@@ -175,7 +180,7 @@ class TelegramClientManager {
 
   async verifyPassword(password: string): Promise<string> {
     if (!this.phone) throw new Error("No phone number from previous step");
-    if (!this.client.connected) await this.client.connect();
+    await this.ensureConnected();
 
     const passwordInfo = await this.client.invoke(
       new Api.account.GetPassword()
@@ -311,9 +316,7 @@ class TelegramClientManager {
       return;
     }
 
-    if (!this.client.connected) {
-      await this.client.connect();
-    }
+    await this.ensureConnected();
 
     // Fetch the message from Saved Messages
     const messages = await this.client.getMessages("me", { ids: [messageId] });
