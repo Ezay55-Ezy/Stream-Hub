@@ -9,143 +9,150 @@
 <style>
 *,::before,::after{margin:0;padding:0;box-sizing:border-box}
 :root{--bg:#0d0f12;--surface:#18181b;--surface2:#27272a;--accent:#e50914;--accent-hover:#ff1a25;--text:#f4f4f5;--muted:#a1a1aa;--subtle:#52525b;--match:#46d369;--radius:8px;--radius-sm:4px}
-body{background:var(--bg);color:var(--text);font-family:Inter,-apple-system,system-ui,sans-serif;overflow-x:hidden;min-height:100vh}a{color:inherit;text-decoration:none}
+body{background:var(--bg);color:var(--text);font-family:Inter,-apple-system,system-ui,sans-serif;overflow-x:hidden;min-height:100vh;padding-top:64px}
+a{color:inherit;text-decoration:none}
 ::selection{background:var(--accent);color:#fff}
 
-/* Header */
-header{position:fixed;top:0;left:0;right:0;z-index:100;padding:0 48px;height:64px;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(180deg,rgba(13,15,18,.98) 0%,transparent);transition:background .3s,transform .3s}
+/* ── Header ─────────────────────────────────────────── */
+header{position:fixed;top:0;left:0;right:0;z-index:50;height:64px;padding:0 40px;display:flex;align-items:center;justify-content:space-between;background:rgba(0,0,0,.6);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,.04);transition:transform .3s}
 header.hidden{transform:translateY(-100%)}
-header.scrolled{background:rgba(13,15,18,.96);box-shadow:0 1px 8px rgba(0,0,0,.4)}
-.brand{font-size:22px;font-weight:800;background:linear-gradient(135deg,#e50914,#ff4d4d);-webkit-background-clip:text;-webkit-text-fill-color:transparent;cursor:pointer;letter-spacing:-.5px}
-header nav{display:flex;gap:24px}
-header nav a{font-size:14px;color:var(--muted);transition:color .2s}
-header nav a:hover{color:var(--text)}
+.h-left{display:flex;align-items:center;gap:16px;flex:1}
+.h-left .back-btn{display:none;align-items:center;gap:5px;background:rgba(255,255,255,.08);border:none;color:var(--text);padding:6px 12px;border-radius:var(--radius-sm);cursor:pointer;font-size:13px;transition:background .15s}
+.h-left .back-btn:hover{background:rgba(255,255,255,.15)}
+.h-left .back-btn.visible{display:flex}
+.brand{font-size:20px;font-weight:800;background:linear-gradient(135deg,#e50914,#ff4d4d);-webkit-background-clip:text;-webkit-text-fill-color:transparent;cursor:pointer;letter-spacing:-.3px;white-space:nowrap}
+.h-center{display:flex;align-items:center;gap:28px;flex:1;justify-content:center}
+.h-center a{font-size:14px;color:var(--muted);transition:color .2s;white-space:nowrap}
+.h-center a:hover,.h-center a.active{color:var(--text)}
+.h-right{display:flex;align-items:center;gap:12px;flex:1;justify-content:flex-end}
+.h-right .search-btn{background:rgba(255,255,255,.06);border:none;color:var(--muted);padding:7px 14px;border-radius:20px;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:6px;transition:background .15s}
+.h-right .search-btn:hover{background:rgba(255,255,255,.12);color:var(--text)}
+.avatar{width:32px;height:32px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;cursor:pointer}
 
-/* Hero */
-.hero{position:relative;height:75vh;min-height:520px;background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460);display:flex;align-items:flex-end;padding:0 48px 100px}
-.hero::after{content:'';position:absolute;inset:0;background:linear-gradient(0deg,#0d0f12 0%,transparent 60%,rgba(13,15,18,.4) 100%);pointer-events:none}
-.hero-content{position:relative;z-index:2;max-width:680px}
-.hero-content h2{font-size:48px;font-weight:800;line-height:1.1;margin-bottom:12px;letter-spacing:-.5px}
-.hero-content .desc{font-size:15px;color:#bbb;line-height:1.6;margin-bottom:20px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
-.meta-row{display:flex;gap:10px;align-items:center;margin-bottom:18px;flex-wrap:wrap;font-size:13px}
+/* ── Hero ───────────────────────────────────────────── */
+.hero{position:relative;height:75vh;min-height:500px;display:flex;align-items:flex-end;padding:0 48px 80px;overflow:hidden}
+.hero-bg{position:absolute;inset:0;background-size:cover;background-position:center 20%;background-color:#1a1a2e}
+.hero-bg::after{content:'';position:absolute;inset:0;background:linear-gradient(0deg,#0d0f12 0%,transparent 55%,rgba(13,15,18,.3) 100%)}
+.hero-gradient{position:absolute;inset:0;background:linear-gradient(135deg,rgba(13,15,18,.7) 0%,transparent 60%)}
+.hero-content{position:relative;z-index:2;max-width:700px}
+.hero-content h1{font-size:44px;font-weight:800;line-height:1.1;margin-bottom:10px;letter-spacing:-.5px}
+.hero-content .desc{font-size:15px;color:#bbb;line-height:1.6;margin-bottom:18px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.meta-row{display:flex;gap:8px;align-items:center;margin-bottom:16px;flex-wrap:wrap;font-size:13px}
 .match-pill{color:var(--match);font-weight:700}
-.pill{padding:3px 10px;background:var(--surface2);border-radius:20px;font-size:12px;color:var(--muted)}
-.pill.accent{background:var(--accent);color:#fff}
-.hero-actions{display:flex;gap:10px}
-.hero-actions button{display:inline-flex;align-items:center;gap:8px;padding:11px 26px;border:none;border-radius:var(--radius);font-size:15px;font-weight:600;cursor:pointer;transition:transform .15s,opacity .15s}
+.pill{padding:2px 10px;background:rgba(255,255,255,.08);border-radius:20px;font-size:11px;color:var(--muted)}
+.pill.accent{background:var(--accent);color:#fff;font-weight:600}
+.hero-actions{display:flex;gap:10px;flex-wrap:wrap}
+.hero-actions button{display:inline-flex;align-items:center;gap:7px;padding:10px 24px;border:none;border-radius:var(--radius);font-size:14px;font-weight:600;cursor:pointer;transition:transform .15s}
 .hero-actions button:hover{transform:scale(1.04)}
-.hero-actions .btn-primary{background:var(--accent);color:#fff}
-.hero-actions .btn-primary:hover{background:var(--accent-hover)}
-.hero-actions .btn-secondary{background:rgba(255,255,255,.08);color:var(--text)}
-.hero-actions .btn-secondary:hover{background:rgba(255,255,255,.15)}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:var(--accent-hover)}
+.btn-secondary{background:rgba(255,255,255,.08);color:var(--text)}
+.btn-secondary:hover{background:rgba(255,255,255,.15)}
 
-/* Sections */
-.section{padding:36px 48px 0}
+/* ── Sections & Shelves ─────────────────────────────── */
+.section{padding:28px 48px 0}
+.section:last-child{padding-bottom:48px}
 .section-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
-.section-header h3{font-size:19px;font-weight:700}
+.section-header h3{font-size:18px;font-weight:700}
 .section-header a{font-size:13px;color:var(--muted);cursor:pointer}
 .section-header a:hover{color:var(--text)}
+.shelf{display:flex;gap:10px;overflow-x:auto;padding-bottom:8px;scroll-behavior:smooth;-ms-overflow-style:none;scrollbar-width:none}
+.shelf::-webkit-scrollbar{display:none}
+.shelf .card{flex:0 0 auto;width:160px;border-radius:var(--radius);overflow:hidden;cursor:pointer;background:var(--surface);transition:transform .25s;outline:none}
+.shelf .card:hover{transform:translateY(-4px)}
+.shelf .card:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.shelf .card-poster{aspect-ratio:2/3;background:var(--surface2);display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
+.shelf .card-poster img{width:100%;height:100%;object-fit:cover;transition:transform .35s}
+.shelf .card:hover .card-poster img{transform:scale(1.07)}
+.shelf .card-poster .fallback{font-size:36px;opacity:.12;user-select:none}
+.shelf .card .progress-bar{position:absolute;bottom:0;left:0;right:0;height:3px;background:rgba(255,255,255,.06);z-index:2}
+.shelf .card .progress-bar .fill{height:100%;background:var(--accent);transition:width .3s}
+.shelf .card-body{padding:10px}
+.shelf .card-body h4{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.shelf .card-body .meta{font-size:11px;color:var(--subtle);display:flex;gap:6px;margin-top:2px}
+.shelf .card .overlay{position:absolute;inset:0;background:rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s}
+.shelf .card:hover .overlay{opacity:1}
+.shelf .card .overlay .play-circle{width:44px;height:44px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;transition:transform .2s}
+.shelf .card:hover .play-circle{transform:scale(1.1)}
 
-/* Progress bar on cards */
-.card-progress{position:absolute;bottom:0;left:0;right:0;height:3px;background:rgba(255,255,255,.08);z-index:2}
-.card-progress .fill{height:100%;background:var(--accent);transition:width .3s}
+/* ── Player View ────────────────────────────────────── */
+.player-view{position:relative;width:100%;height:100vh;background:#000;display:flex;flex-direction:column}
+.player-view video{width:100%;height:100%;object-fit:contain;background:#000;outline:none;flex:1}
+.player-nav{position:absolute;top:0;left:0;right:0;z-index:20;padding:16px 24px;display:flex;align-items:center;gap:14px;background:linear-gradient(180deg,rgba(0,0,0,.7) 0%,transparent);opacity:0;transition:opacity .3s}
+.player-view:hover .player-nav,.player-nav.show{opacity:1}
+.player-nav .back-btn{background:rgba(255,255,255,.1);border:none;color:#fff;padding:7px 14px;border-radius:var(--radius-sm);cursor:pointer;font-size:13px;display:flex;align-items:center;gap:5px;transition:background .15s}
+.player-nav .back-btn:hover{background:rgba(255,255,255,.18)}
+.player-nav .brand{font-size:17px}
+.player-ctrl{position:absolute;bottom:0;left:0;right:0;z-index:20;background:linear-gradient(0deg,rgba(0,0,0,.92) 0%,transparent 55%);padding:64px 20px 14px;opacity:0;transition:opacity .3s;cursor:default;user-select:none}
+.player-view:hover .player-ctrl,.player-ctrl.show{opacity:1}
+.player-ctrl .progress-wrap{width:100%;height:5px;background:rgba(255,255,255,.1);border-radius:4px;cursor:pointer;margin-bottom:10px;position:relative;transition:height .15s}
+.player-ctrl .progress-wrap:hover{height:7px}
+.player-ctrl .progress-wrap .fill{height:100%;background:var(--accent);border-radius:4px;max-width:100%;transition:width .1s linear}
+.player-ctrl .progress-wrap .fill::after{content:'';position:absolute;right:-5px;top:50%;transform:translateY(-50%);width:10px;height:10px;border-radius:50%;background:var(--accent);opacity:0;transition:opacity .15s}
+.player-ctrl .progress-wrap:hover .fill::after{opacity:1}
+.player-ctrl .progress-wrap .tooltip{position:absolute;bottom:14px;background:rgba(0,0,0,.85);color:#fff;font-size:11px;padding:3px 7px;border-radius:var(--radius-sm);white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .15s}
+.player-ctrl .progress-wrap:hover .tooltip{opacity:1}
+.player-ctrl .bar{display:flex;align-items:center;justify-content:space-between}
+.player-ctrl .left,.player-ctrl .right{display:flex;align-items:center;gap:10px}
+.player-ctrl button{background:none;border:none;color:#fff;cursor:pointer;width:34px;height:34px;display:flex;align-items:center;justify-content:center;border-radius:var(--radius-sm);transition:background .15s;flex-shrink:0}
+.player-ctrl button:hover{background:rgba(255,255,255,.1)}
+.player-ctrl button svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.player-ctrl .time{font-size:13px;color:#ccc;font-variant-numeric:tabular-nums;white-space:nowrap}
+.player-ctrl .speed-btn{font-size:11px;font-weight:700;width:auto;padding:0 7px;letter-spacing:.3px}
+.player-ctrl input[type=range]{width:54px;height:3px;-webkit-appearance:none;background:rgba(255,255,255,.25);border-radius:2px;outline:none;cursor:pointer}
+.player-ctrl input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:11px;height:11px;border-radius:50%;background:#fff;border:none;cursor:pointer}
+.center-play{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:10;width:60px;height:60px;border-radius:50%;background:rgba(229,9,20,.85);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .25s;pointer-events:none}
+.center-play svg{width:24px;height:24px;fill:none;stroke:#fff;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;margin-left:2px}
+.player-view.paused .center-play{opacity:1}
+.skip-ind{position:absolute;bottom:90px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.75);padding:6px 14px;border-radius:var(--radius);font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:10;white-space:nowrap;backdrop-filter:blur(6px)}
+.skip-ind.show{opacity:1}
 
-/* Grid */
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;padding-bottom:40px}
-.card{position:relative;border-radius:var(--radius);overflow:hidden;cursor:pointer;background:var(--surface);transition:transform .25s cubic-bezier(.25,.46,.45,.94),box-shadow .25s;outline:none}
-.card:hover{transform:translateY(-6px);box-shadow:0 10px 30px rgba(0,0,0,.5)}
-.card:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.card-poster{aspect-ratio:2/3;background:var(--surface2);display:flex;align-items:center;justify-content:center;overflow:hidden}
-.card-poster img{width:100%;height:100%;object-fit:cover;transition:transform .4s}
-.card:hover .card-poster img{transform:scale(1.07)}
-.card-poster .fallback{font-size:40px;opacity:.12;user-select:none}
-.card-body{padding:11px 12px}
-.card-body h4{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.card-body .meta{font-size:11px;color:var(--subtle);display:flex;gap:8px;margin-top:2px}
-.card .overlay{position:absolute;inset:0;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .25s}
-.card:hover .overlay,.card:focus-visible .overlay{opacity:1}
-.overlay .play-circle{width:50px;height:50px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;transition:transform .2s}
-.card:hover .play-circle{transform:scale(1.12)}
+/* ── Details below player ───────────────────────────── */
+.player-details{padding:24px 48px 48px;max-width:860px;margin:0 auto;background:var(--bg)}
+.player-details h2{font-size:24px;font-weight:700;margin-bottom:8px}
+.player-details .meta-row{margin-bottom:12px}
+.player-details p{color:#aaa;font-size:14px;line-height:1.7;margin-bottom:16px}
+.player-details .actions{display:flex;gap:10px}
+.player-details .actions button{display:inline-flex;align-items:center;gap:7px;padding:9px 20px;border:none;border-radius:var(--radius);font-size:13px;font-weight:600;cursor:pointer;transition:transform .15s}
+.player-details .actions button:hover{transform:scale(1.04)}
+.resume-box{display:flex;align-items:center;gap:12px;background:rgba(229,9,20,.1);border:1px solid rgba(229,9,20,.2);border-radius:var(--radius);padding:12px 16px;margin-bottom:16px}
+.resume-box span{font-size:14px;flex:1}
+.resume-box .btn-secondary{flex-shrink:0}
 
-/* Watch page */
-.watch{min-height:100vh;background:#000}
-.watch-nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;gap:16px;padding:14px 48px;background:linear-gradient(180deg,rgba(0,0,0,.85) 0%,transparent);transition:opacity .3s}
-.watch-nav.hidden{opacity:0;pointer-events:none}
-.watch-nav .back{background:rgba(255,255,255,.08);border:none;color:var(--text);padding:7px 14px;border-radius:var(--radius-sm);cursor:pointer;font-size:13px;display:flex;align-items:center;gap:5px;transition:background .15s}
-.watch-nav .back:hover{background:rgba(255,255,255,.16)}
-.watch-nav .brand{font-size:18px}
-
-/* Video player */
-.video-container{position:relative;width:100%;background:#000;cursor:pointer}
-.video-container video{width:100%;max-height:80vh;display:block;outline:none}
-.video-container .ctrl{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(0deg,rgba(0,0,0,.92) 0%,transparent 55%,transparent);padding:64px 20px 14px;opacity:0;transition:opacity .3s;cursor:default;user-select:none}
-.video-container:hover .ctrl,.video-container .ctrl.show{opacity:1}
-.video-container .ctrl .progress-wrap{width:100%;height:6px;background:rgba(255,255,255,.12);border-radius:4px;cursor:pointer;margin-bottom:10px;position:relative;transition:height .15s}
-.video-container .ctrl .progress-wrap:hover{height:8px}
-.ctrl .progress-wrap .fill{height:100%;background:var(--accent);border-radius:4px;position:relative;transition:width .1s linear;max-width:100%}
-.ctrl .progress-wrap .fill::after{content:'';position:absolute;right:-5px;top:50%;transform:translateY(-50%);width:10px;height:10px;border-radius:50%;background:var(--accent);opacity:0;transition:opacity .15s}
-.ctrl .progress-wrap:hover .fill::after{opacity:1}
-.ctrl .progress-wrap .tooltip{position:absolute;bottom:16px;background:rgba(0,0,0,.85);color:#fff;font-size:12px;padding:3px 8px;border-radius:var(--radius-sm);white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .15s}
-.ctrl .progress-wrap:hover .tooltip{opacity:1}
-.ctrl .bar{display:flex;align-items:center;justify-content:space-between}
-.ctrl .left,.ctrl .right{display:flex;align-items:center;gap:10px}
-.ctrl button{background:none;border:none;color:#fff;cursor:pointer;width:34px;height:34px;display:flex;align-items:center;justify-content:center;border-radius:var(--radius-sm);transition:background .15s;flex-shrink:0}
-.ctrl button:hover{background:rgba(255,255,255,.1)}
-.ctrl button svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.ctrl .time{font-size:13px;color:#ccc;font-variant-numeric:tabular-nums;user-select:none;white-space:nowrap}
-.ctrl .speed-btn{font-size:11px;font-weight:700;width:auto;padding:0 7px;letter-spacing:.3px}
-.ctrl input[type=range]{width:56px;height:3px;-webkit-appearance:none;appearance:none;background:rgba(255,255,255,.25);border-radius:2px;outline:none;cursor:pointer}
-.ctrl input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:11px;height:11px;border-radius:50%;background:#fff;border:none;cursor:pointer}
-.center-play{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:62px;height:62px;border-radius:50%;background:rgba(229,9,20,.88);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .25s;pointer-events:none;z-index:5}
-.center-play svg{width:26px;height:26px;fill:none;stroke:#fff;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;margin-left:2px}
-.video-container.paused .center-play{opacity:1}
-.skip-indicator{position:absolute;bottom:90px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.75);padding:6px 14px;border-radius:var(--radius);font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:5;white-space:nowrap;backdrop-filter:blur(6px)}
-.skip-indicator.show{opacity:1}
-
-/* Details */
-.watch-details{padding:28px 48px 48px;max-width:900px;margin:0 auto}
-.watch-details h2{font-size:26px;font-weight:700;margin-bottom:8px}
-.watch-details .meta-row{margin-bottom:14px}
-.watch-details p{color:#aaa;font-size:14px;line-height:1.7;margin-bottom:18px}
-.watch-actions{display:flex;gap:10px;flex-wrap:wrap}
-.watch-actions button{display:inline-flex;align-items:center;gap:7px;padding:9px 20px;border:none;border-radius:var(--radius);font-size:13px;font-weight:600;cursor:pointer;transition:transform .15s}
-.watch-actions button:hover{transform:scale(1.04)}
-.watch-actions .btn-primary{background:var(--accent);color:#fff}
-.watch-actions .btn-primary:hover{background:var(--accent-hover)}
-.watch-actions .btn-secondary{background:rgba(255,255,255,.08);color:var(--text)}
-.watch-actions .btn-secondary:hover{background:rgba(255,255,255,.15)}
-
-/* Resume banner */
-.resume-banner{display:flex;align-items:center;gap:12px;background:rgba(229,9,20,.12);border:1px solid rgba(229,9,20,.25);border-radius:var(--radius);padding:12px 16px;margin-bottom:16px}
-.resume-banner span{font-size:14px;flex:1}
-.resume-banner .btn-secondary{flex-shrink:0}
-
-/* Loading / Error / Empty */
-.loading{display:flex;align-items:center;justify-content:center;min-height:80vh;color:var(--subtle);font-size:16px;gap:10px}
-.loading .spinner{width:20px;height:20px;border:2px solid var(--surface2);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
+/* ── Loading / Misc ─────────────────────────────────── */
+.loading{display:flex;align-items:center;justify-content:center;min-height:60vh;color:var(--subtle);font-size:15px;gap:10px}
+.loading .spinner{width:18px;height:18px;border:2px solid var(--surface2);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .error{padding:40px 20px;text-align:center;color:var(--accent)}
-.empty{text-align:center;padding:80px 20px;color:var(--subtle)}
+.empty{text-align:center;padding:60px 20px;color:var(--subtle)}
 
 @media(max-width:768px){
-header{padding:0 20px}.hero{padding:0 20px 70px;min-height:380px}.hero-content h2{font-size:30px}.section{padding:24px 20px 0}.grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:9px}
-.watch-nav{padding:12px 16px}.watch-details{padding:18px 16px 32px}.watch-details h2{font-size:20px}
-.ctrl .bar{gap:6px}.ctrl .left{gap:6px}.ctrl button{width:30px;height:30px}.ctrl input[type=range]{width:36px}
+header{padding:0 16px;height:56px}.h-center{display:none}.h-right .search-btn span{display:none}
+.hero{padding:0 20px 60px;min-height:360px}.hero-content h1{font-size:28px}
+.section{padding:20px 16px 0}.shelf .card{width:130px}
+.player-details{padding:18px 16px 32px}.player-nav{padding:12px 16px}
 }
 </style>
 </head>
 <body>
 <header id="header">
-  <span class="brand" onclick="navigate('home')">StreamGram</span>
-  <nav><a href="#">Home</a><a href="#">Trending</a></nav>
+  <div class="h-left">
+    <button class="back-btn" id="backBtn" onclick="navigate('home')"><svg width="14" height="14" viewBox="0 0 24 24" style="fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg> Back</button>
+    <span class="brand" onclick="navigate('home')">StreamGram</span>
+  </div>
+  <nav class="h-center"><a href="#" class="active">Home</a><a href="#">Trending</a></nav>
+  <div class="h-right">
+    <button class="search-btn"><svg width="14" height="14" viewBox="0 0 24 24" style="fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><span>Search</span></button>
+    <div class="avatar">E</div>
+  </div>
 </header>
-<div id="app"><div class="loading"><div class="spinner"></div>Loading...</div></div>
+<div id="app"></div>
 
 <script>
-const API='/api'; let series=[]; let saveTimer=null;
+const API='/api';let series=[];
 
 // ── SVG Icons ─────────────────────────────────────────────
-const I={play:'<svg viewBox="0 0 24 24"><polygon points="6,4 20,12 6,20"/></svg>',pause:'<svg viewBox="0 0 24 24"><rect x="5" y="4" width="5" height="16" rx="1"/><rect x="14" y="4" width="5" height="16" rx="1"/></svg>',rw:'<svg viewBox="0 0 24 24"><path d="M1 4v6h6"/><path d="M3.5 15a9 9 0 1 0 2-10"/></svg>',ff:'<svg viewBox="0 0 24 24"><path d="M23 4v6h-6"/><path d="M20.5 15a9 9 0 1 1-2-10"/></svg>',vol:'<svg viewBox="0 0 24 24"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M19.1 4.9a10 10 0 0 1 0 14.2M15.5 8.5a5 5 0 0 1 0 7"/></svg>',volX:'<svg viewBox="0 0 24 24"><path d="M11 5 6 9H2v6h4l5 4z"/><line x1="22" y1="9" x2="16" y2="15"/><line x1="16" y1="9" x2="22" y2="15"/></svg>',fs:'<svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>',fsX:'<svg viewBox="0 0 24 24"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></svg>'};
+const I={play:'<svg viewBox="0 0 24 24"><polygon points="6,4 20,12 6,20"/></svg>',pause:'<svg viewBox="0 0 24 24"><rect x="5" y="4" width="5" height="16" rx="1"/><rect x="14" y="4" width="5" height="16" rx="1"/></svg>',rw:'<svg viewBox="0 0 24 24"><path d="M1 4v6h6"/><path d="M3.5 15a9 9 0 1 0 2-10"/></svg>',ff:'<svg viewBox="0 0 24 24"><path d="M23 4v6h-6"/><path d="M20.5 15a9 9 0 1 1-2-10"/></svg>',vol:'<svg viewBox="0 0 24 24"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M19.1 4.9a10 10 0 0 1 0 14.2M15.5 8.5a5 5 0 0 1 0 7"/></svg>',fs:'<svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>'};
 
 // ── Utilities ─────────────────────────────────────────────
 const esc=s=>s?s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'):'';
@@ -153,54 +160,34 @@ const fmtSize=b=>{if(!b)return'';const g=b/1e9;return g>1?`${g.toFixed(1)} GB`:`
 const fmtDur=s=>{if(!s)return'';const h=Math.floor(s/3600),m=Math.floor((s%3600)/60);return h?`${h}h ${m}m`:`${m}m`};
 const fmtTime=t=>{if(!t||!isFinite(t))return'0:00';const h=Math.floor(t/3600),m=Math.floor((t%3600)/60),s=Math.floor(t%60);return h?`${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`:`${m}:${String(s).padStart(2,'0')}`};
 
-// ── Metadata Parser ───────────────────────────────────────
 function parseMeta(raw){
   if(!raw)return{title:'Untitled',quality:'',encoder:'',source:'',year:'',cleanDesc:''};
-  let s=raw;
-  // Strip decorative borders and emoji artifacts
-  s=s.replace(/[─✯═━⎯▶📺🗓💿👥★☆▬]/g,'').replace(/@\w+/g,'').replace(/\s{2,}/g,' ').trim();
+  let s=raw.replace(/[─✯═━⎯▶📺🗓💿👥★☆▬]/g,'').replace(/@\w+/g,'').replace(/\s{2,}/g,' ').trim();
   const lines=s.split('\n').map(l=>l.trim()).filter(Boolean);
-  const titleLine=lines[0]||'Untitled';
-  // Parse WWE-style title: "WWE RAW #1731 July 27th, 2026"
-  let title=titleLine.replace(/^#\s*/,'').trim();
-  // Extract year
-  const yearMatch=title.match(/\b(20\d{2})\b/);
-  const year=yearMatch?yearMatch[1]:'';
-  // Extract quality
-  let quality='';const qMatch=raw.match(/\b(720p|1080p|2160p|4K|480p|360p)\b/i);
-  if(qMatch)quality=qMatch[1].toUpperCase();
-  // Extract encoder
-  let encoder='';const eMatch=raw.match(/\b(H[\s.]?264|H[\s.]?265|x264|x265|HEVC|AVC|AV1|VP9)\b/i);
-  if(eMatch)encoder=eMatch[1].replace(/[\s.]/g,'');
-  // Extract source
-  let source='';const srcMatch=raw.match(/\b(WEB[\s-]?DL|WEB[\s-]?RIP|BluRay|BR[\s-]?Rip|HDTV|DVDRip|CAM|TS|TC)\b/i);
-  if(srcMatch)source=srcMatch[1].replace(/[\s-]/g,'-');
-  // Clean up remaining description
+  let title=(lines[0]||'Untitled').replace(/^#\s*/,'').trim();
+  const year=(title.match(/\b(20\d{2})\b/)||[])[1]||'';
+  let quality='';const q=raw.match(/\b(720p|1080p|2160p|4K|480p|360p)\b/i);if(q)quality=q[1].toUpperCase();
+  let encoder='';const e=raw.match(/\b(H[\s.]?264|H[\s.]?265|x264|x265|HEVC|AVC|AV1|VP9)\b/i);if(e)encoder=e[1].replace(/[\s.]/g,'');
+  let source='';const src=raw.match(/\b(WEB[\s-]?DL|WEB[\s-]?RIP|BluRay|BR[\s-]?Rip|HDTV|DVDRip)\b/i);if(src)source=src[1].replace(/[\s-]/g,'-');
   const cleanDesc=lines.slice(1).filter(l=>!/^(https?:\/\/|@)/i.test(l)).join(' ').replace(/\s{2,}/g,' ').trim();
   return{title,quality,encoder,source,year,cleanDesc};
 }
 
-// ── LocalStorage Persistence ──────────────────────────────
 const STORE_KEY='sg_watch';
-function loadProgress(){try{return JSON.parse(localStorage.getItem(STORE_KEY)||'{}')}catch{return{}}}
-function saveProgress(id,time,duration){
-  const p=loadProgress();p[id]={time,duration,updated:Date.now()};
-  try{localStorage.setItem(STORE_KEY,JSON.stringify(p))}catch{}
-}
-function getProgress(id){return loadProgress()[id]||null}
-function getAllProgress(){const p=loadProgress();return Object.fromEntries(Object.entries(p).filter(([_,v])=>v.time>5&&v.time<v.duration-30))}
+function loadP(){try{return JSON.parse(localStorage.getItem(STORE_KEY)||'{}')}catch{return{}}}
+function saveP(id,time,dur){const p=loadP();p[id]={time,dur,updated:Date.now()};try{localStorage.setItem(STORE_KEY,JSON.stringify(p))}catch{}}
+function getP(id){return loadP()[id]||null}
+function allP(){const p=loadP();return Object.fromEntries(Object.entries(p).filter(([_,v])=>v.time>5&&v.time<v.dur-30))}
 
-// ── DOM Refs ──────────────────────────────────────────────
 const app=document.getElementById('app');
 const header=document.getElementById('header');
-window.addEventListener('scroll',()=>header.classList.toggle('scrolled',window.scrollY>40));
+const backBtn=document.getElementById('backBtn');
 
 function navigate(page,id){
   if(page==='home')renderHome();
   else if(page==='watch')renderWatch(id);
 }
 
-// ── Data Fetch ────────────────────────────────────────────
 async function load(){
   try{
     const r=await fetch(`${API}/series`);
@@ -212,16 +199,23 @@ async function load(){
 
 // ── Home ──────────────────────────────────────────────────
 function renderHome(){
-  document.title='StreamGram';
-  header.style.background='';
-  header.classList.remove('hidden');
-  if(!series.length){app.innerHTML='<div class="empty"><p>No content yet</p><p style="font-size:13px;margin-top:6px;color:var(--subtle)">Sync videos from Telegram to get started.</p></div>';return}
+  document.title='StreamGram';backBtn.classList.remove('visible');
+  if(!series.length){app.innerHTML='<div class="empty"><p>No content yet</p></div>';return}
   const f=series[0],m=parseMeta(f.title);
-  const progress=getAllProgress();
+  const prog=allP();
+  const sections=[];
+  // Continue Watching
+  const cw=series.filter(s=>prog[s.id]);
+  if(cw.length)sections.push({title:'Continue Watching',items:cw,prog:true});
+  // All as "Recently Added"
+  sections.push({title:'Recently Added',items:series,prog:false});
+
   app.innerHTML=`
     <div class="hero">
+      <div class="hero-bg" style="background-image:url(${f.posterUrl?esc(f.posterUrl):''})"></div>
+      <div class="hero-gradient"></div>
       <div class="hero-content">
-        <h2>${esc(m.title)}</h2>
+        <h1>${esc(m.title)}</h1>
         <div class="meta-row">
           <span class="match-pill">98% Match</span>
           ${m.year?`<span class="pill">${m.year}</span>`:''}
@@ -232,192 +226,159 @@ function renderHome(){
         </div>
         <p class="desc">${esc(m.cleanDesc||f.description||'')}</p>
         <div class="hero-actions">
-          <button class="btn-primary" onclick="navigate('watch',${f.id})"><svg width="16" height="16" viewBox="0 0 24 24" style="fill:#fff;stroke:none"><polygon points="6,4 20,12 6,20"/></svg> Play</button>
-          <button class="btn-secondary" onclick="download(${f.id})"><svg width="16" height="16" viewBox="0 0 24 24" style="fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Download</button>
+          <button class="btn-primary" onclick="navigate('watch',${f.id})"><svg width="15" height="15" viewBox="0 0 24 24" style="fill:#fff;stroke:none"><polygon points="6,4 20,12 6,20"/></svg> Play</button>
+          <button class="btn-secondary" onclick="download(${f.id})"><svg width="15" height="15" viewBox="0 0 24 24" style="fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Download</button>
         </div>
       </div>
     </div>
-    ${Object.keys(progress).length?`<div class="section"><div class="section-header"><h3>Continue Watching</h3></div><div class="grid">${series.filter(s=>progress[s.id]).map(s=>{const p=progress[s.id],pct=p.duration?Math.min(100,(p.time/p.duration)*100):0,pm=parseMeta(s.title);return`
-      <div class="card" onclick="navigate('watch',${s.id})" tabindex="0">
-        <div class="card-progress"><div class="fill" style="width:${pct}%"></div></div>
-        <div class="card-poster">${s.posterUrl?`<img src="${s.posterUrl}" alt="" loading="lazy">`:'<span class="fallback">🎬</span>'}<div class="overlay"><div class="play-circle"><svg width="22" height="22" viewBox="0 0 24 24" style="fill:#fff;stroke:none"><polygon points="6,4 20,12 6,20"/></svg></div></div></div>
-        <div class="card-body"><h4>${esc(pm.title)}</h4><div class="meta"><span>${fmtDur(s.duration)}</span><span>${Math.round(pct)}% watched</span></div></div>
-      </div>`}).join('')}</div></div>`:''}
-    <div class="section">
-      <div class="section-header"><h3>All Videos</h3><a>View All</a></div>
-      <div class="grid">${series.map(s=>{const pm=parseMeta(s.title);return`
-        <div class="card" onclick="navigate('watch',${s.id})" tabindex="0">
-          <div class="card-poster">${s.posterUrl?`<img src="${s.posterUrl}" alt="" loading="lazy">`:'<span class="fallback">🎬</span>'}<div class="overlay"><div class="play-circle"><svg width="22" height="22" viewBox="0 0 24 24" style="fill:#fff;stroke:none"><polygon points="6,4 20,12 6,20"/></svg></div></div></div>
-          <div class="card-body"><h4>${esc(pm.title)}</h4><div class="meta"><span>${fmtDur(s.duration)}</span><span>${fmtSize(s.fileSize)}</span></div></div>
-        </div>`}).join('')}
-      </div>
-    </div>`;
+    ${sections.map(sec=>`
+      <div class="section">
+        <div class="section-header"><h3>${sec.title}</h3><a>View All →</a></div>
+        <div class="shelf">${sec.items.map(s=>{const pm=parseMeta(s.title),p=sec.prog?prog[s.id]:null,pct=p&&p.dur?Math.min(100,(p.time/p.dur)*100):0;return`
+          <div class="card" onclick="navigate('watch',${s.id})" tabindex="0">
+            <div class="card-poster">${s.posterUrl?`<img src="${s.posterUrl}" alt="" loading="lazy">`:'<span class="fallback">🎬</span>'}
+              ${pct>0?`<div class="progress-bar"><div class="fill" style="width:${pct}%"></div></div>`:''}
+              <div class="overlay"><div class="play-circle"><svg width="18" height="18" viewBox="0 0 24 24" style="fill:#fff;stroke:none"><polygon points="6,4 20,12 6,20"/></svg></div></div>
+            </div>
+            <div class="card-body"><h4>${esc(pm.title)}</h4><div class="meta"><span>${fmtDur(s.duration)}</span>${pct>0?`<span>${Math.round(pct)}%</span>`:''}</div></div>
+          </div>`}).join('')}
+        </div>
+      </div>`).join('')}`;
 }
 
-// ── Video Player ──────────────────────────────────────────
-let ctrlTimer=null,vid=null;
+// ── Player ────────────────────────────────────────────────
+let ctrlTimer=null;
 
 function setupPlayer(video,container){
-  vid=video;
-  const ctrl=container.querySelector('.ctrl');
-  const playBtn=container.querySelector('.play-btn');
-  const centerPlay=container.querySelector('.center-play');
-  const progress=container.querySelector('.progress-wrap');
-  const fill=container.querySelector('.fill');
-  const cur=container.querySelector('.curr');
-  const tot=container.querySelector('.tot');
-  const vol=container.querySelector('.vol-slider');
-  const spdBtn=container.querySelector('.speed-btn');
-  const ffBtn=container.querySelector('.ff-btn');
-  const rwBtn=container.querySelector('.rw-btn');
-  const skipInd=container.querySelector('.skip-indicator');
-  const tooltip=container.querySelector('.tooltip');
-  const fsBtn=container.querySelector('.fs-btn');
-  const watchNav=document.querySelector('.watch-nav');
+  const ctrl=container.querySelector('.player-ctrl');
+  const pnav=container.querySelector('.player-nav');
+  const playBtn=ctrl.querySelector('.play-btn');
+  const cp=container.querySelector('.center-play');
+  const prog=ctrl.querySelector('.progress-wrap');
+  const fill=ctrl.querySelector('.fill');
+  const cur=ctrl.querySelector('.curr');
+  const tot=ctrl.querySelector('.tot');
+  const vol=ctrl.querySelector('.vol-slider');
+  const spd=ctrl.querySelector('.speed-btn');
+  const ff=ctrl.querySelector('.ff-btn');
+  const rw=ctrl.querySelector('.rw-btn');
+  const si=container.querySelector('.skip-ind');
+  const tip=ctrl.querySelector('.tooltip');
+  const fs=ctrl.querySelector('.fs-btn');
 
   let isFs=false;
-  function ctrlShow(){ctrl.classList.add('show');clearTimeout(ctrlTimer);ctrlTimer=setTimeout(()=>{if(!video.paused&&!isFs)ctrl.classList.remove('show')},2500)}
-  function toggleP(){
-    if(video.paused){video.play();centerPlay.classList.remove('show')}else{video.pause();centerPlay.classList.add('show')}
-    ctrlShow();
+
+  function showC(){ctrl.classList.add('show');pnav.classList.add('show');clearTimeout(ctrlTimer);ctrlTimer=setTimeout(()=>{if(!video.paused&&!isFs){ctrl.classList.remove('show');pnav.classList.remove('show')}},2500)}
+  function toggle(){
+    if(video.paused){video.play();cp.classList.remove('show')}else{video.pause();cp.classList.add('show')}
+    showC();
   }
-  function update(){
-    const pct=video.duration?(video.currentTime/video.duration)*100:0;
-    fill.style.width=Math.min(pct,100)+'%';
+  function upd(){
+    const p=video.duration?(video.currentTime/video.duration)*100:0;
+    fill.style.width=Math.min(p,100)+'%';
     cur.textContent=fmtTime(video.currentTime);
     tot.textContent=video.duration?fmtTime(video.duration):'0:00';
   }
-  function skip(sec){
+  function sk(sec){
     video.currentTime=Math.max(0,Math.min(video.duration||0,video.currentTime+sec));
-    skipInd.textContent=(sec>0?'+':'')+sec+'s';
-    skipInd.classList.add('show');clearTimeout(skipInd._t);skipInd._t=setTimeout(()=>skipInd.classList.remove('show'),800);
-    ctrlShow();
+    si.textContent=(sec>0?'+':'')+sec+'s';si.classList.add('show');clearTimeout(si._t);si._t=setTimeout(()=>si.classList.remove('show'),800);
+    showC();
   }
 
-  video.addEventListener('timeupdate',update);
-  video.addEventListener('loadedmetadata',update);
-  video.addEventListener('play',()=>{container.classList.remove('paused');ctrlShow()});
+  video.addEventListener('timeupdate',upd);
+  video.addEventListener('loadedmetadata',upd);
+  video.addEventListener('play',()=>{container.classList.remove('paused');showC()});
   video.addEventListener('pause',()=>container.classList.add('paused'));
-  video.addEventListener('click',()=>toggleP());
+  video.addEventListener('click',()=>toggle());
 
-  playBtn.addEventListener('click',e=>{e.stopPropagation();toggleP()});
-  centerPlay.addEventListener('click',()=>toggleP());
-  rwBtn.addEventListener('click',e=>{e.stopPropagation();skip(-10)});
-  ffBtn.addEventListener('click',e=>{e.stopPropagation();skip(10)});
+  playBtn.addEventListener('click',e=>{e.stopPropagation();toggle()});
+  cp.addEventListener('click',()=>toggle());
+  rw.addEventListener('click',e=>{e.stopPropagation();sk(-10)});
+  ff.addEventListener('click',e=>{e.stopPropagation();sk(10)});
 
-  progress.addEventListener('click',e=>{
-    const r=progress.getBoundingClientRect();
-    video.currentTime=((e.clientX-r.left)/r.width)*(video.duration||0);
-    ctrlShow();
-  });
-  progress.addEventListener('mousemove',e=>{
-    const r=progress.getBoundingClientRect(),pct=(e.clientX-r.left)/r.width;
-    tooltip.textContent=fmtTime(pct*(video.duration||0));
-    tooltip.style.left=Math.min(Math.max(e.clientX-r.left-20,0),r.width-40)+'px';
-  });
+  prog.addEventListener('click',e=>{const r=prog.getBoundingClientRect();video.currentTime=((e.clientX-r.left)/r.width)*(video.duration||0);showC()});
+  prog.addEventListener('mousemove',e=>{const r=prog.getBoundingClientRect(),pct=(e.clientX-r.left)/r.width;tip.textContent=fmtTime(pct*(video.duration||0));tip.style.left=Math.min(Math.max(e.clientX-r.left-20,0),r.width-40)+'px'});
 
   vol.addEventListener('input',()=>{video.volume=vol.value});
   video.addEventListener('volumechange',()=>{vol.value=video.volume});
 
-  fsBtn.addEventListener('click',e=>{
-    e.stopPropagation();
-    if(document.fullscreenElement){document.exitFullscreen();isFs=false;watchNav?.classList.remove('hidden')}
-    else{container.requestFullscreen?.();isFs=true;watchNav?.classList.add('hidden')}
-  });
-  document.addEventListener('fullscreenchange',()=>{
-    isFs=!!document.fullscreenElement;
-    if(isFs){ctrl.classList.add('show');watchNav?.classList.add('hidden')}else watchNav?.classList.remove('hidden');
-  });
+  fs.addEventListener('click',e=>{e.stopPropagation();if(document.fullscreenElement){document.exitFullscreen();isFs=false}else{container.requestFullscreen?.();isFs=true}});
+  document.addEventListener('fullscreenchange',()=>{isFs=!!document.fullscreenElement;if(isFs){ctrl.classList.add('show');pnav.classList.add('show')}});
 
-  let spdIdx=0;const spds=[1,1.25,1.5,1.75,2,0.5,0.75];
-  spdBtn.addEventListener('click',e=>{e.stopPropagation();spdIdx=(spdIdx+1)%spds.length;video.playbackRate=spds[spdIdx];spdBtn.textContent=spds[spdIdx]+'×';ctrlShow()});
+  let si2=0;const spds=[1,1.25,1.5,1.75,2,0.5,0.75];
+  spd.addEventListener('click',e=>{e.stopPropagation();si2=(si2+1)%spds.length;video.playbackRate=spds[si2];spd.textContent=spds[si2]+'×';showC()});
 
-  const kv=e=>{
+  document.addEventListener('keydown',e=>{
     if(document.activeElement?.tagName==='INPUT'||!container.isConnected)return;
-    switch(e.code){
-      case'Space':e.preventDefault();toggleP();break;
-      case'ArrowLeft':skip(-10);break;
-      case'ArrowRight':skip(10);break;
-      case'KeyF':fsBtn.click();break;
-      case'KeyM':video.muted=!video.muted;break;
-    }
-  };
-  document.addEventListener('keydown',kv);
+    switch(e.code){case'Space':e.preventDefault();toggle();break;case'ArrowLeft':sk(-10);break;case'ArrowRight':sk(10);break;case'KeyF':fs.click();break;case'KeyM':video.muted=!video.muted;break}
+  });
 
-  // Save progress every 5s
-  const sid=setInterval(()=>{if(video.duration)saveProgress(series.find(s=>s.telegramMessageId)?.id||0,video.currentTime,video.duration)},5000);
+  const sid=setInterval(()=>{if(video.duration)saveP(series.find(s=>s.telegramFileId)?.id||0,video.currentTime,video.duration)},5000);
   video.addEventListener('destroy',()=>clearInterval(sid));
 
-  update();ctrlShow();
+  upd();showC();
 }
 
-// ── Watch Page ────────────────────────────────────────────
 function renderWatch(id){
   const s=series.find(x=>x.id===id);
   if(!s){app.innerHTML='<div class="error">Not found</div>';return}
-  const m=parseMeta(s.title);
-  const prog=getProgress(id);
-  const resumeTime=prog&&prog.time>5&&prog.time<prog.duration-30?prog.time:null;
+  const m=parseMeta(s.title);const prog=getP(id);
+  const rt=prog&&prog.time>5&&prog.time<prog.dur-30?prog.time:null;
+  document.title=m.title;backBtn.classList.add('visible');
 
-  document.title=m.title;
-  header.style.background='#0d0f12';header.classList.add('scrolled');
   app.innerHTML=`
-    <div class="watch">
-      <div class="watch-nav">
-        <button class="back" onclick="navigate('home')"><svg width="16" height="16" viewBox="0 0 24 24" style="fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg> Back</button>
+    <div class="player-view paused">
+      <div class="player-nav">
+        <button class="back-btn" onclick="navigate('home')"><svg width="14" height="14" viewBox="0 0 24 24" style="fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg> Back to Browse</button>
         <span class="brand" onclick="navigate('home')">StreamGram</span>
       </div>
-      <div class="video-container paused">
-        <div class="center-play"><svg viewBox="0 0 24 24"><polygon points="6,4 20,12 6,20"/></svg></div>
-        <div class="skip-indicator"></div>
-        <video preload="metadata"><source src="/api/download/${id}" type="video/mp4"></video>
-        <div class="ctrl">
-          <div class="progress-wrap"><div class="fill"></div><div class="tooltip">0:00</div></div>
-          <div class="bar">
-            <div class="left">
-              <button class="rw-btn">${I.rw}</button>
-              <button class="play-btn">${I.play}</button>
-              <button class="ff-btn">${I.ff}</button>
-              <span class="time"><span class="curr">0:00</span> / <span class="tot">0:00</span></span>
-            </div>
-            <div class="right">
-              <button class="speed-btn">1×</button>
-              <input class="vol-slider" type="range" min="0" max="1" step="0.05" value="1">
-              <button class="fs-btn">${I.fs}</button>
-            </div>
+      <div class="center-play"><svg viewBox="0 0 24 24"><polygon points="6,4 20,12 6,20"/></svg></div>
+      <div class="skip-ind"></div>
+      <video preload="metadata"><source src="/api/download/${id}" type="video/mp4"></video>
+      <div class="player-ctrl">
+        <div class="progress-wrap"><div class="fill"></div><div class="tooltip">0:00</div></div>
+        <div class="bar">
+          <div class="left">
+            <button class="rw-btn">${I.rw}</button>
+            <button class="play-btn">${I.play}</button>
+            <button class="ff-btn">${I.ff}</button>
+            <span class="time"><span class="curr">0:00</span> / <span class="tot">0:00</span></span>
+          </div>
+          <div class="right">
+            <button class="speed-btn">1×</button>
+            <input class="vol-slider" type="range" min="0" max="1" step="0.05" value="1">
+            <button class="fs-btn">${I.fs}</button>
           </div>
         </div>
       </div>
-      <div class="watch-details">
-        ${resumeTime?`<div class="resume-banner"><span>Continue from <strong>${fmtTime(resumeTime)}</strong>?</span><button class="btn-secondary" onclick="document.querySelector('.video-container video').currentTime=${resumeTime};document.querySelector('.video-container video').play()">Resume</button><button class="btn-secondary" onclick="document.querySelector('.video-container video').play()">Start Over</button></div>`:''}
-        <h2>${esc(m.title)}</h2>
-        <div class="meta-row">
-          <span class="match-pill">98% Match</span>
-          ${m.year?`<span class="pill">${m.year}</span>`:''}
-          <span class="pill">${fmtDur(s.duration)}</span>
-          <span class="pill">${fmtSize(s.fileSize)}</span>
-          ${m.quality?`<span class="pill accent">${m.quality}</span>`:''}
-          ${m.encoder?`<span class="pill">${m.encoder}</span>`:''}
-          ${m.source?`<span class="pill">${m.source}</span>`:''}
-        </div>
-        <p>${esc(m.cleanDesc||s.description||'')}</p>
-        <div class="watch-actions">
-          <button class="btn-primary" onclick="document.querySelector('.video-container video').play()"><svg width="14" height="14" viewBox="0 0 24 24" style="fill:#fff;stroke:none"><polygon points="6,4 20,12 6,20"/></svg> Play</button>
-          <button class="btn-secondary" onclick="download(${id})"><svg width="14" height="14" viewBox="0 0 24 24" style="fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Download</button>
-        </div>
+    </div>
+    <div class="player-details">
+      ${rt?`<div class="resume-box"><span>Continue from <strong>${fmtTime(rt)}</strong>?</span><button class="btn-secondary" onclick="document.querySelector('.player-view video').currentTime=${rt};document.querySelector('.player-view video').play()">Resume</button><button class="btn-secondary" onclick="document.querySelector('.player-view video').play()">Start Over</button></div>`:''}
+      <h2>${esc(m.title)}</h2>
+      <div class="meta-row">
+        <span class="match-pill">98% Match</span>
+        ${m.year?`<span class="pill">${m.year}</span>`:''}
+        <span class="pill">${fmtDur(s.duration)}</span><span class="pill">${fmtSize(s.fileSize)}</span>
+        ${m.quality?`<span class="pill accent">${m.quality}</span>`:''}
+        ${m.encoder?`<span class="pill">${m.encoder}</span>`:''}
+        ${m.source?`<span class="pill">${m.source}</span>`:''}
+      </div>
+      <p>${esc(m.cleanDesc||s.description||'')}</p>
+      <div class="actions">
+        <button class="btn-primary" onclick="document.querySelector('.player-view video').play()"><svg width="14" height="14" viewBox="0 0 24 24" style="fill:#fff;stroke:none"><polygon points="6,4 20,12 6,20"/></svg> Play</button>
+        <button class="btn-secondary" onclick="download(${id})"><svg width="14" height="14" viewBox="0 0 24 24" style="fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Download</button>
       </div>
     </div>`;
 
   window.scrollTo(0,0);
-  const video=document.querySelector('.video-container video');
-  const container=document.querySelector('.video-container');
+  const video=document.querySelector('.player-view video');
+  const container=document.querySelector('.player-view');
   if(video&&container){
     video.addEventListener('canplay',()=>setupPlayer(video,container),{once:true});
     if(video.readyState>=3)setupPlayer(video,container);
   }
 }
 
-// ── Download ──────────────────────────────────────────────
 function download(id){
   const a=document.createElement('a');
   a.href=`/api/download/${id}`;a.download='';
