@@ -15,12 +15,15 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
+import { useMutation } from "@tanstack/react-query";
 import {
   useSendAuthCode,
   useVerifyAuthCode,
   useSyncSavedMessages,
 } from "@workspace/api-client-react";
+import { customFetch } from "@workspace/api-client-react";
 import { useColors } from "@/hooks/useColors";
+import { useAuth } from "@/contexts/AuthContext";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   getGetFeaturedSeriesQueryKey,
@@ -32,7 +35,7 @@ import {
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 
-type Step = "PHONE" | "CODE" | "SUCCESS";
+type Step = "PHONE" | "CODE" | "PASSWORD" | "SUCCESS";
 
 interface Props {
   visible: boolean;
@@ -43,10 +46,12 @@ export function TelegramAuthModal({ visible, onAuthenticated }: Props) {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
+  const { setAuth } = useAuth();
 
   const [step, setStep] = useState<Step>("PHONE");
   const [phone, setPhone] = useState("");
   const [code, setCode] = useState("");
+  const [password, setPassword] = useState("");
   const [phoneCodeHash, setPhoneCodeHash] = useState("");
   const [error, setError] = useState<string | null>(null);
 
@@ -59,6 +64,7 @@ export function TelegramAuthModal({ visible, onAuthenticated }: Props) {
       setStep("PHONE");
       setPhone("");
       setCode("");
+      setPassword("");
       setError(null);
       Animated.parallel([
         Animated.timing(fadeAnim, {
@@ -97,6 +103,16 @@ export function TelegramAuthModal({ visible, onAuthenticated }: Props) {
   const verifyCode = useVerifyAuthCode();
   const syncMessages = useSyncSavedMessages();
 
+  const verifyPassword = useMutation({
+    mutationFn: async (password: string) => {
+      return customFetch<{ session: string }>("/api/auth/verify-password", {
+        method: "POST",
+        body: JSON.stringify({ password }),
+        headers: { "Content-Type": "application/json" },
+      });
+    },
+  });
+
   const handleSendCode = useCallback(async () => {
     if (!phone.trim()) return;
     setError(null);
@@ -116,6 +132,40 @@ export function TelegramAuthModal({ visible, onAuthenticated }: Props) {
     );
   }, [phone, sendCode]);
 
+  const handleVerifyPassword = useCallback(async () => {
+    if (!password.trim()) return;
+    setError(null);
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    verifyPassword.mutate(password.trim(), {
+      onSuccess: async () => {
+        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        setAuth(phone.trim());
+        setStep("SUCCESS");
+
+        queryClient.invalidateQueries({ queryKey: getGetAuthStatusQueryKey() });
+        queryClient.invalidateQueries({ queryKey: getGetFeaturedSeriesQueryKey() });
+        queryClient.invalidateQueries({ queryKey: getGetRecentSeriesQueryKey() });
+        queryClient.invalidateQueries({ queryKey: getListSeriesQueryKey() });
+        queryClient.invalidateQueries({ queryKey: getListCategoriesQueryKey() });
+
+        syncMessages.mutate(undefined, {
+          onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: getGetFeaturedSeriesQueryKey() });
+            queryClient.invalidateQueries({ queryKey: getGetRecentSeriesQueryKey() });
+            queryClient.invalidateQueries({ queryKey: getListSeriesQueryKey() });
+            queryClient.invalidateQueries({ queryKey: getListCategoriesQueryKey() });
+          },
+        });
+
+        setTimeout(() => dismiss(), 1400);
+      },
+      onError: (err: any) => {
+        const errMsg = err?.data?.error ?? err?.message ?? "Password verification failed";
+        setError(errMsg);
+      },
+    });
+  }, [password, verifyPassword, phone, setAuth, syncMessages, queryClient, dismiss]);
+
   const handleVerifyCode = useCallback(async () => {
     if (!code.trim()) return;
     setError(null);
@@ -125,6 +175,7 @@ export function TelegramAuthModal({ visible, onAuthenticated }: Props) {
       {
         onSuccess: async () => {
           await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+          setAuth(phone.trim());
           setStep("SUCCESS");
 
           // Invalidate auth status and content
@@ -150,7 +201,8 @@ export function TelegramAuthModal({ visible, onAuthenticated }: Props) {
         onError: (err: any) => {
           const errMsg: string = err?.data?.error ?? err?.message ?? "Verification failed";
           if (errMsg === "2FA_REQUIRED") {
-            setError("Two-step verification is enabled on your account. Please disable 2FA temporarily and try again, or contact support.");
+            setStep("PASSWORD");
+            setError(null);
           } else {
             setError(errMsg);
           }
@@ -220,7 +272,7 @@ export function TelegramAuthModal({ visible, onAuthenticated }: Props) {
 
               {/* ── Step indicator ────────────────────────────────────── */}
               <View style={styles.stepRow}>
-                {(["PHONE", "CODE"] as Step[]).map((s, i) => (
+                {(["PHONE", "CODE", "PASSWORD"] as Step[]).map((s, i) => (
                   <View
                     key={s}
                     style={[
@@ -261,7 +313,7 @@ export function TelegramAuthModal({ visible, onAuthenticated }: Props) {
                     onSubmitEditing={handleSendCode}
                   />
                 </View>
-              ) : (
+              ) : step === "CODE" ? (
                 <View style={styles.inputGroup}>
                   <Text style={[styles.label, { color: colors.mutedForeground }]}>
                     Verification code
@@ -298,7 +350,42 @@ export function TelegramAuthModal({ visible, onAuthenticated }: Props) {
                     </Text>
                   </TouchableOpacity>
                 </View>
-              )}
+              ) : step === "PASSWORD" ? (
+                <View style={styles.inputGroup}>
+                  <Text style={[styles.label, { color: colors.mutedForeground }]}>
+                    Two-factor authentication password
+                  </Text>
+                  <TextInput
+                    style={[
+                      styles.input,
+                      {
+                        backgroundColor: colors.secondary,
+                        color: colors.foreground,
+                        borderColor: colors.border,
+                      },
+                    ]}
+                    placeholder="Enter your 2FA password"
+                    placeholderTextColor={colors.mutedForeground}
+                    value={password}
+                    onChangeText={setPassword}
+                    secureTextEntry
+                    autoFocus
+                    returnKeyType="done"
+                    onSubmitEditing={handleVerifyPassword}
+                  />
+                  <TouchableOpacity
+                    onPress={() => {
+                      setStep("CODE");
+                      setPassword("");
+                      setError(null);
+                    }}
+                  >
+                    <Text style={[styles.backLink, { color: colors.primary }]}>
+                      ← Back to code verification
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              ) : null}
 
               {/* ── Error ─────────────────────────────────────────────── */}
               {error ? (
@@ -317,16 +404,16 @@ export function TelegramAuthModal({ visible, onAuthenticated }: Props) {
                   { backgroundColor: colors.primary },
                   (sendCode.isPending || verifyCode.isPending) && styles.buttonDisabled,
                 ]}
-                onPress={step === "PHONE" ? handleSendCode : handleVerifyCode}
+                onPress={step === "PHONE" ? handleSendCode : step === "CODE" ? handleVerifyCode : handleVerifyPassword}
                 activeOpacity={0.85}
-                disabled={sendCode.isPending || verifyCode.isPending}
+                disabled={sendCode.isPending || verifyCode.isPending || verifyPassword.isPending}
               >
-                {sendCode.isPending || verifyCode.isPending ? (
+                {sendCode.isPending || verifyCode.isPending || verifyPassword.isPending ? (
                   <ActivityIndicator color="#fff" />
                 ) : (
                   <>
                     <Text style={styles.buttonText}>
-                      {step === "PHONE" ? "Send Code" : "Verify & Connect"}
+                      {step === "PHONE" ? "Send Code" : step === "CODE" ? "Verify & Connect" : "Submit Password"}
                     </Text>
                     <Feather name="arrow-right" size={18} color="#fff" />
                   </>

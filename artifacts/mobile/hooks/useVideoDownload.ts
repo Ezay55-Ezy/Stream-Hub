@@ -1,11 +1,3 @@
-/**
- * useVideoDownload
- *
- * Thin bridge between a component and the global DownloadManagerContext.
- * Components call this hook exactly as before — the API is unchanged —
- * but the download now lives in the global manager, survives modal close,
- * and benefits from parallel chunked downloading.
- */
 import { useCallback } from "react";
 import {
   useDownloadManager,
@@ -16,7 +8,7 @@ import {
 export type { DownloadStatus };
 
 export interface VideoDownloadState {
-  status: DownloadStatus | "idle"; // "idle" when not yet in manager
+  status: DownloadStatus | "idle";
   progress: number;
   error: string | null;
   speed: string | null;
@@ -35,9 +27,12 @@ export function useVideoDownload(
   const error = item?.error ?? null;
   const speed = item?.speed ?? null;
 
-  const start = useCallback(() => {
-    manager.enqueue(seriesId, seriesName, fileSize);
-  }, [manager, seriesId, seriesName, fileSize]);
+  const start = useCallback(
+    (userPhone: string) => {
+      manager.enqueue(seriesId, seriesName, userPhone, fileSize);
+    },
+    [manager, seriesId, seriesName, fileSize],
+  );
 
   const pause = useCallback(() => {
     manager.pause(seriesId);
@@ -51,7 +46,6 @@ export function useVideoDownload(
     manager.cancel(seriesId);
   }, [manager, seriesId]);
 
-  // reset: remove from manager so the button resets to "Download"
   const reset = useCallback(() => {
     if (item) manager.cancel(seriesId);
   }, [manager, seriesId, item]);

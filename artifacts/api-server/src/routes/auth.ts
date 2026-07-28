@@ -64,4 +64,21 @@ router.post("/verify-code", async (req, res) => {
   }
 });
 
+// POST /api/auth/verify-password
+router.post("/verify-password", async (req, res) => {
+  try {
+    const { password } = req.body as { password?: string };
+    if (!password || typeof password !== "string") {
+      res.status(400).json({ error: "password is required" });
+      return;
+    }
+
+    const session = await telegramClient.verifyPassword(password);
+    res.json({ session });
+  } catch (err: any) {
+    req.log.error({ err }, "verify-password failed");
+    res.status(400).json({ error: err?.message ?? "Password verification failed" });
+  }
+});
+
 export default router;

@@ -4,10 +4,13 @@ import {
   ScrollView,
   View,
   Text,
+  TextInput,
+  TouchableOpacity,
   Platform,
   RefreshControl,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Feather } from "@expo/vector-icons";
 import {
   useGetFeaturedSeries,
   useGetRecentSeries,
@@ -25,6 +28,7 @@ export default function HomeScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const [refreshing, setRefreshing] = useState(false);
 
   // Auth state — poll every 10 s so the modal auto-dismisses if session
@@ -64,7 +68,7 @@ export default function HomeScreen() {
     data: allSeries,
     isLoading: allLoading,
     refetch: refetchAll,
-  } = useListSeries();
+  } = useListSeries(searchQuery ? { search: searchQuery } : undefined);
 
   const handlePressSeries = useCallback((id: number) => setSelectedId(id), []);
   const handleCloseModal = useCallback(() => setSelectedId(null), []);
@@ -122,6 +126,24 @@ export default function HomeScreen() {
         <View style={styles.logoRow}>
           <Text style={[styles.logo, { color: colors.primary }]}>STREAM</Text>
           <Text style={[styles.logoGram, { color: colors.foreground }]}>GRAM</Text>
+        </View>
+
+        <View style={[styles.searchContainer, { backgroundColor: colors.secondary, borderColor: colors.border }]}>
+          <Feather name="search" size={16} color={colors.mutedForeground} />
+          <TextInput
+            style={[styles.searchInput, { color: colors.foreground }]}
+            placeholder="Search series…"
+            placeholderTextColor={colors.mutedForeground}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            returnKeyType="search"
+            clearButtonMode="while-editing"
+          />
+          {searchQuery ? (
+            <TouchableOpacity onPress={() => setSearchQuery("")} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+              <Feather name="x" size={16} color={colors.mutedForeground} />
+            </TouchableOpacity>
+          ) : null}
         </View>
 
         <SeriesRow
@@ -198,6 +220,23 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontFamily: "Inter_700Bold",
     letterSpacing: 2,
+  },
+  searchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginHorizontal: 16,
+    marginBottom: 18,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    gap: 8,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 14,
+    fontFamily: "Inter_400Regular",
+    paddingVertical: 0,
   },
   emptyState: {
     alignItems: "center",

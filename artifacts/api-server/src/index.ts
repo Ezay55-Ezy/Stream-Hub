@@ -1,3 +1,4 @@
+import "dotenv/config";
 import app from "./app.js";
 import { logger } from "./lib/logger.js";
 import { telegramClient } from "./telegram-client.js";

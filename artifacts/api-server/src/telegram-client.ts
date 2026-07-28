@@ -14,6 +14,7 @@ import { TelegramClient, Api } from "telegram";
 import { StringSession } from "telegram/sessions/index.js";
 import { NewMessage, NewMessageEvent } from "telegram/events/index.js";
 import { ConnectionTCPFull } from "telegram/network/connection/TCPFull.js";
+import { computeCheck as computePasswordCheck } from "telegram/Password.js";
 import { iterDownload } from "telegram/client/downloads.js";
 import bigInt from "big-integer";
 import type { Response } from "express";
@@ -166,6 +167,38 @@ class TelegramClientManager {
     if (sessionStr) this.saveSession(sessionStr);
 
     logger.info({ phone }, "✅ Telegram authentication successful");
+    this.startListening();
+
+    return sessionStr;
+  }
+
+  async verifyPassword(password: string): Promise<string> {
+    if (!this.phone) throw new Error("No phone number from previous step");
+
+    const passwordInfo = await this.client.invoke(
+      new Api.account.GetPassword()
+    );
+
+    const { srpId, A, M1 } = await computePasswordCheck(
+      passwordInfo,
+      password,
+    );
+
+    await this.client.invoke(
+      new Api.auth.CheckPassword({
+        password: new Api.InputCheckPasswordSRP({
+          srpId,
+          A: Buffer.from(A),
+          M1: Buffer.from(M1),
+        }),
+      })
+    );
+
+    this.authenticated = true;
+    const sessionStr = this.client.session.save() as unknown as string;
+    if (sessionStr) this.saveSession(sessionStr);
+
+    logger.info({ phone: this.phone }, "2FA verification successful");
     this.startListening();
 
     return sessionStr;

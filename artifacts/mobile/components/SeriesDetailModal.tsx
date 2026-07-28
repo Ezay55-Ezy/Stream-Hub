@@ -4,7 +4,7 @@
  * Displays overview information and handles direct download initialization.
  * Bridges authenticated context states directly to prevent layout authentication bypass.
  */
-import React, { useCallback, useRef, useEffect } from "react";
+import React, { useCallback, useRef, useEffect, useState } from "react";
 import {
   Modal,
   View,
@@ -22,10 +22,10 @@ import { Feather } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
 import { useColors } from "@/hooks/useColors";
+import { useAuth } from "@/contexts/AuthContext";
 import { useGetSeriesById } from "@workspace/api-client-react";
 import { useVideoDownload } from "@/hooks/useVideoDownload";
-// TODO: Replace this with your project's actual Auth context/hook path if different
-// import { useAuth } from "@/contexts/AuthContext";
+import { VideoPlayer } from "@/components/VideoPlayer";
 
 interface Props {
   seriesId: number | null;
@@ -51,12 +51,9 @@ function formatDuration(seconds: number | null | undefined): string {
 export function SeriesDetailModal({ seriesId, onClose }: Props) {
   const colors = useColors();
   const insets = useSafeAreaInsets();
+  const [videoVisible, setVideoVisible] = useState(false);
 
-  // ── AUTH LAYER ─────────────────────────────────────────────────────────────
-  // Extract your current session data here. Update the fallback logic below
-  // with whatever state key matches your Auth/User provider layout profile.
-  // const { currentUser } = useAuth();
-  const userPhone = "+254700000000"; // <-- Replace this string placeholder with your dynamic state context variable
+  const { phone: userPhone } = useAuth();
 
   const { data: series, isLoading } = useGetSeriesById(seriesId ?? 0, {
     query: {
@@ -348,6 +345,21 @@ export function SeriesDetailModal({ seriesId, onClose }: Props) {
               </View>
             )}
 
+            {/* Play button */}
+            <TouchableOpacity
+              style={[
+                styles.downloadBtn,
+                { backgroundColor: colors.primary },
+                !series && styles.btnDisabled,
+              ]}
+              onPress={() => setVideoVisible(true)}
+              activeOpacity={0.85}
+              disabled={!series}
+            >
+              <Feather name="play" size={18} color="#fff" />
+              <Text style={styles.downloadBtnText}>Play</Text>
+            </TouchableOpacity>
+
             {/* Download / Pause / Resume / Complete button */}
             <TouchableOpacity
               style={[
@@ -380,6 +392,15 @@ export function SeriesDetailModal({ seriesId, onClose }: Props) {
           </View>
         </ScrollView>
       </View>
+
+      {series && (
+        <VideoPlayer
+          seriesId={series.id}
+          title={series.title}
+          visible={videoVisible}
+          onClose={() => setVideoVisible(false)}
+        />
+      )}
     </Modal>
   );
 }

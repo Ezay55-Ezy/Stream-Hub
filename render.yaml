@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: streamgram-api
+    env: node
+    region: oregon
+    plan: free
+    buildCommand: npm install -g pnpm && pnpm install && pnpm --filter @workspace/api-server run build
+    startCommand: pnpm --filter @workspace/api-server run start
+    healthCheckPath: /api/healthz
+    envVars:
+      - key: PORT
+        value: "10000"
+      - key: NODE_VERSION
+        value: "22"
+      - key: TELEGRAM_API_ID
+        sync: false
+      - key: TELEGRAM_API_HASH
+        sync: false
+      - key: DATABASE_URL
+        sync: false

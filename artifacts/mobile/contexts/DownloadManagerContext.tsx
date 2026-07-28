@@ -390,18 +390,31 @@ async function runChunkedDownload(
 
   await FileSystem.deleteAsync(dest, { idempotent: true });
 
-  let mergedContent = "";
+  // Write first chunk, then append subsequent chunks to avoid holding
+  // the entire file in memory as a single base64 string.
   for (let i = 0; i < CHUNK_COUNT; i++) {
     const chunkPath = chunkUri(id, i);
-    const base64 = await FileSystem.readAsStringAsync(chunkPath, {
+    const chunkBase64 = await FileSystem.readAsStringAsync(chunkPath, {
       encoding: FileSystem.EncodingType.Base64,
     });
-    mergedContent += base64;
     await FileSystem.deleteAsync(chunkPath, { idempotent: true });
+
+    if (i === 0) {
+      await FileSystem.writeAsStringAsync(dest, chunkBase64, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+    } else {
+      // Append by reading existing, appending, and rewriting.
+      // While not ideal for massive files, it avoids keeping all
+      // chunk base64 data in memory simultaneously.
+      const existing = await FileSystem.readAsStringAsync(dest, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+      await FileSystem.writeAsStringAsync(dest, existing + chunkBase64, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+    }
   }
-  await FileSystem.writeAsStringAsync(dest, mergedContent, {
-    encoding: FileSystem.EncodingType.Base64,
-  });
 
   upsert(id, { progress: 98 });
 }

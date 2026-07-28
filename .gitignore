@@ -47,3 +47,6 @@ Thumbs.db
 # Replit
 .cache/
 .local/
+
+# Telegram session (contains auth data)
+artifacts/api-server/telegram.session

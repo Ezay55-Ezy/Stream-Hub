@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "StreamGram",
-    "slug": "mobile",
+    "slug": "stream-hub",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -17,6 +17,7 @@
       "supportsTablet": false
     },
     "android": {
+      "package": "com.linusezrasteam.streamgram",
       "backgroundColor": "#141414"
     },
     "web": {
@@ -35,6 +36,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "323f5f62-6431-4470-9d94-4106e0a30834"
+      }
+    },
+    "owner": "linusezras-team"
   }
 }
