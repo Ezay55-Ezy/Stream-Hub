@@ -20,8 +20,8 @@ import {
   useSendAuthCode,
   useVerifyAuthCode,
   useSyncSavedMessages,
-} from "@workspace/api-client-react";
-import { customFetch } from "@workspace/api-client-react";
+} from "../lib/api-client";
+import { customFetch } from "../lib/api-client";
 import { useColors } from "@/hooks/useColors";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQueryClient } from "@tanstack/react-query";
@@ -31,7 +31,7 @@ import {
   getListSeriesQueryKey,
   getListCategoriesQueryKey,
   getGetAuthStatusQueryKey,
-} from "@workspace/api-client-react";
+} from "../lib/api-client";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 

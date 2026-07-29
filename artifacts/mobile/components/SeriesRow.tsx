@@ -2,7 +2,7 @@ import React from "react";
 import { View, Text, FlatList, StyleSheet, ActivityIndicator } from "react-native";
 import { SeriesPosterCard } from "./SeriesPosterCard";
 import { useColors } from "@/hooks/useColors";
-import type { Series } from "@workspace/api-client-react";
+import type { Series } from "../lib/api-client";
 
 interface Props {
   title: string;

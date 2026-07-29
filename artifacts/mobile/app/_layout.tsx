@@ -12,7 +12,7 @@ import React, { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { setBaseUrl } from "@workspace/api-client-react";
+import { setBaseUrl } from "../lib/api-client";
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { DownloadManagerProvider } from "@/contexts/DownloadManagerContext";

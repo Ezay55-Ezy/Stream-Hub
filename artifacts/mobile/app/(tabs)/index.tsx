@@ -17,7 +17,7 @@ import {
   useListSeries,
   useListCategories,
   useGetAuthStatus,
-} from "@workspace/api-client-react";
+} from "../../lib/api-client";
 import { useColors } from "@/hooks/useColors";
 import { HeroBanner } from "@/components/HeroBanner";
 import { SeriesRow } from "@/components/SeriesRow";

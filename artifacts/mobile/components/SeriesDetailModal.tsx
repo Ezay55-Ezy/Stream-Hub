@@ -23,7 +23,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
 import { useColors } from "@/hooks/useColors";
 import { useAuth } from "@/contexts/AuthContext";
-import { useGetSeriesById } from "@workspace/api-client-react";
+import { useGetSeriesById } from "../lib/api-client";
 import { useVideoDownload } from "@/hooks/useVideoDownload";
 import { VideoPlayer } from "@/components/VideoPlayer";
 

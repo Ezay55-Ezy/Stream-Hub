@@ -78,13 +78,14 @@ header.hidden{transform:translateY(-100%)}
 /* ── Player View ────────────────────────────────────── */
 .player-view{position:relative;width:100%;height:100vh;background:#000;display:flex;flex-direction:column}
 .player-view video{width:100%;height:100%;object-fit:contain;background:#000;outline:none;flex:1}
-.player-nav{position:absolute;top:0;left:0;right:0;z-index:20;padding:16px 24px;display:flex;align-items:center;gap:14px;background:linear-gradient(180deg,rgba(0,0,0,.7) 0%,transparent);opacity:0;transition:opacity .3s}
-.player-view:hover .player-nav,.player-nav.show{opacity:1}
+.player-view.cursor-none{cursor:none}
+.player-overlay{position:absolute;inset:0;z-index:20;opacity:0;pointer-events:none;transition:opacity .3s}
+.player-overlay.show{opacity:1;pointer-events:auto}
+.player-nav{padding:16px 24px;display:flex;align-items:center;gap:14px;background:linear-gradient(180deg,rgba(0,0,0,.7) 0%,transparent)}
 .player-nav .back-btn{background:rgba(255,255,255,.1);border:none;color:#fff;padding:7px 14px;border-radius:var(--radius-sm);cursor:pointer;font-size:13px;display:flex;align-items:center;gap:5px;transition:background .15s}
 .player-nav .back-btn:hover{background:rgba(255,255,255,.18)}
 .player-nav .brand{font-size:17px}
-.player-ctrl{position:absolute;bottom:0;left:0;right:0;z-index:20;background:linear-gradient(0deg,rgba(0,0,0,.92) 0%,transparent 55%);padding:64px 20px 14px;opacity:0;transition:opacity .3s;cursor:default;user-select:none}
-.player-view:hover .player-ctrl,.player-ctrl.show{opacity:1}
+.player-ctrl{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(0deg,rgba(0,0,0,.92) 0%,transparent 55%);padding:64px 20px 14px;cursor:default;user-select:none}
 .player-ctrl .progress-wrap{width:100%;height:5px;background:rgba(255,255,255,.1);border-radius:4px;cursor:pointer;margin-bottom:10px;position:relative;transition:height .15s}
 .player-ctrl .progress-wrap:hover{height:7px}
 .player-ctrl .progress-wrap .fill{height:100%;background:var(--accent);border-radius:4px;max-width:100%;transition:width .1s linear}
@@ -101,11 +102,14 @@ header.hidden{transform:translateY(-100%)}
 .player-ctrl .speed-btn{font-size:11px;font-weight:700;width:auto;padding:0 7px;letter-spacing:.3px}
 .player-ctrl input[type=range]{width:54px;height:3px;-webkit-appearance:none;background:rgba(255,255,255,.25);border-radius:2px;outline:none;cursor:pointer}
 .player-ctrl input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:11px;height:11px;border-radius:50%;background:#fff;border:none;cursor:pointer}
-.center-play{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:10;width:60px;height:60px;border-radius:50%;background:rgba(229,9,20,.85);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .25s;pointer-events:none}
+.center-play{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:60px;height:60px;border-radius:50%;background:rgba(229,9,20,.85);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .25s;pointer-events:none}
 .center-play svg{width:24px;height:24px;fill:none;stroke:#fff;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;margin-left:2px}
-.player-view.paused .center-play{opacity:1}
+.player-view.paused .center-play{opacity:1;pointer-events:auto}
 .skip-ind{position:absolute;bottom:90px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.75);padding:6px 14px;border-radius:var(--radius);font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:10;white-space:nowrap;backdrop-filter:blur(6px)}
 .skip-ind.show{opacity:1}
+.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.85);color:#fff;padding:8px 18px;border-radius:20px;font-size:13px;z-index:100;opacity:0;transition:opacity .25s;pointer-events:none;backdrop-filter:blur(8px);white-space:nowrap}
+.toast.show{opacity:1}
+.aspect-btn{font-size:11px;font-weight:700;width:auto;padding:0 7px;letter-spacing:.3px}
 
 /* ── Details below player ───────────────────────────── */
 .player-details{padding:24px 48px 48px;max-width:860px;margin:0 auto;background:var(--bg)}
@@ -126,11 +130,19 @@ header.hidden{transform:translateY(-100%)}
 .error{padding:40px 20px;text-align:center;color:var(--accent)}
 .empty{text-align:center;padding:60px 20px;color:var(--subtle)}
 
+@media(orientation:portrait){
+.player-view{height:auto;min-height:0;justify-content:flex-start}
+.player-view video{width:100%;height:auto;aspect-ratio:16/9;flex:0 0 auto}
+}
 @media(max-width:768px){
 header{padding:0 16px;height:56px}.h-center{display:none}.h-right .search-btn span{display:none}
 .hero{padding:0 20px 60px;min-height:360px}.hero-content h1{font-size:28px}
 .section{padding:20px 16px 0}.shelf .card{width:130px}
 .player-details{padding:18px 16px 32px}.player-nav{padding:12px 16px}
+}
+@media(max-width:480px){
+.player-ctrl .vol-slider{display:none}
+.player-ctrl .aspect-btn{display:none}
 }
 </style>
 </head>
@@ -199,7 +211,7 @@ async function load(){
 
 // ── Home ──────────────────────────────────────────────────
 function renderHome(){
-  document.title='StreamGram';backBtn.classList.remove('visible');
+  document.title='StreamGram';backBtn.classList.remove('visible');header.classList.remove('hidden');document.body.style.paddingTop='';
   if(!series.length){app.innerHTML='<div class="empty"><p>No content yet</p></div>';return}
   const f=series[0],m=parseMeta(f.title);
   const prog=allP();
@@ -247,11 +259,10 @@ function renderHome(){
 }
 
 // ── Player ────────────────────────────────────────────────
-let ctrlTimer=null;
 
 function setupPlayer(video,container){
+  const overlay=container.querySelector('.player-overlay');
   const ctrl=container.querySelector('.player-ctrl');
-  const pnav=container.querySelector('.player-nav');
   const playBtn=ctrl.querySelector('.play-btn');
   const cp=container.querySelector('.center-play');
   const prog=ctrl.querySelector('.progress-wrap');
@@ -265,14 +276,36 @@ function setupPlayer(video,container){
   const si=container.querySelector('.skip-ind');
   const tip=ctrl.querySelector('.tooltip');
   const fs=ctrl.querySelector('.fs-btn');
+  const aspectBtn=ctrl.querySelector('.aspect-btn');
+  const toast=container.querySelector('.toast');
 
   let isFs=false;
+  let isControlsVisible=true;
+  let ctrlTimer=null;
+  const isTouch='ontouchstart' in window||navigator.maxTouchPoints>0;
 
-  function showC(){ctrl.classList.add('show');pnav.classList.add('show');clearTimeout(ctrlTimer);ctrlTimer=setTimeout(()=>{if(!video.paused&&!isFs){ctrl.classList.remove('show');pnav.classList.remove('show')}},2500)}
-  function toggle(){
-    if(video.paused){video.play();cp.classList.remove('show')}else{video.pause();cp.classList.add('show')}
-    showC();
+  function showControls(){
+    isControlsVisible=true;
+    overlay.classList.add('show');
+    container.classList.remove('cursor-none');
+    resetTimer();
   }
+  function hideControls(){
+    isControlsVisible=false;
+    overlay.classList.remove('show');
+    container.classList.add('cursor-none');
+    clearTimeout(ctrlTimer);
+  }
+  function resetTimer(){
+    clearTimeout(ctrlTimer);
+    if(!video.paused&&!isFs)ctrlTimer=setTimeout(hideControls,3000);
+  }
+
+  function togglePlay(){
+    if(video.paused){video.play()}else{video.pause()}
+    showControls();
+  }
+
   function upd(){
     const p=video.duration?(video.currentTime/video.duration)*100:0;
     fill.style.width=Math.min(p,100)+'%';
@@ -282,41 +315,52 @@ function setupPlayer(video,container){
   function sk(sec){
     video.currentTime=Math.max(0,Math.min(video.duration||0,video.currentTime+sec));
     si.textContent=(sec>0?'+':'')+sec+'s';si.classList.add('show');clearTimeout(si._t);si._t=setTimeout(()=>si.classList.remove('show'),800);
-    showC();
+    showControls();
   }
 
   video.addEventListener('timeupdate',upd);
   video.addEventListener('loadedmetadata',upd);
-  video.addEventListener('play',()=>{container.classList.remove('paused');showC()});
-  video.addEventListener('pause',()=>container.classList.add('paused'));
-  video.addEventListener('click',()=>toggle());
+  video.addEventListener('play',()=>{container.classList.remove('paused');showControls()});
+  video.addEventListener('pause',()=>{container.classList.add('paused');showControls();clearTimeout(ctrlTimer)});
+  video.addEventListener('click',()=>{
+    if(isTouch){isControlsVisible?hideControls():showControls()}
+    else{togglePlay()}
+  });
 
-  playBtn.addEventListener('click',e=>{e.stopPropagation();toggle()});
-  cp.addEventListener('click',()=>toggle());
+  playBtn.addEventListener('click',e=>{e.stopPropagation();togglePlay()});
+  cp.addEventListener('click',e=>{e.stopPropagation();togglePlay()});
   rw.addEventListener('click',e=>{e.stopPropagation();sk(-10)});
   ff.addEventListener('click',e=>{e.stopPropagation();sk(10)});
 
-  prog.addEventListener('click',e=>{const r=prog.getBoundingClientRect();video.currentTime=((e.clientX-r.left)/r.width)*(video.duration||0);showC()});
+  prog.addEventListener('click',e=>{e.stopPropagation();const r=prog.getBoundingClientRect();video.currentTime=((e.clientX-r.left)/r.width)*(video.duration||0);showControls()});
   prog.addEventListener('mousemove',e=>{const r=prog.getBoundingClientRect(),pct=(e.clientX-r.left)/r.width;tip.textContent=fmtTime(pct*(video.duration||0));tip.style.left=Math.min(Math.max(e.clientX-r.left-20,0),r.width-40)+'px'});
 
   vol.addEventListener('input',()=>{video.volume=vol.value});
   video.addEventListener('volumechange',()=>{vol.value=video.volume});
 
   fs.addEventListener('click',e=>{e.stopPropagation();if(document.fullscreenElement){document.exitFullscreen();isFs=false}else{container.requestFullscreen?.();isFs=true}});
-  document.addEventListener('fullscreenchange',()=>{isFs=!!document.fullscreenElement;if(isFs){ctrl.classList.add('show');pnav.classList.add('show')}});
+  document.addEventListener('fullscreenchange',()=>{isFs=!!document.fullscreenElement;if(isFs){showControls();container.classList.remove('cursor-none')}});
 
   let si2=0;const spds=[1,1.25,1.5,1.75,2,0.5,0.75];
-  spd.addEventListener('click',e=>{e.stopPropagation();si2=(si2+1)%spds.length;video.playbackRate=spds[si2];spd.textContent=spds[si2]+'×';showC()});
+  spd.addEventListener('click',e=>{e.stopPropagation();si2=(si2+1)%spds.length;video.playbackRate=spds[si2];spd.textContent=spds[si2]+'×';showControls()});
+
+  const aspectModes=['contain','cover','fill'];let aspectIdx=0;
+  function showToast(msg){toast.textContent=msg;toast.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(()=>toast.classList.remove('show'),2000)}
+  aspectBtn.addEventListener('click',e=>{e.stopPropagation();aspectIdx=(aspectIdx+1)%aspectModes.length;const m=aspectModes[aspectIdx];video.style.objectFit=m;aspectBtn.textContent=m.charAt(0).toUpperCase()+m.slice(1);showToast('Scale: '+m);showControls()});
+
+  container.addEventListener('mousemove',()=>{if(!isControlsVisible)showControls();else resetTimer()});
+  container.addEventListener('touchstart',()=>{if(isControlsVisible)resetTimer()});
+  overlay.addEventListener('click',(e)=>{if(e.target===overlay){if(isTouch){isControlsVisible?hideControls():showControls()}else{togglePlay()}}});
 
   document.addEventListener('keydown',e=>{
     if(document.activeElement?.tagName==='INPUT'||!container.isConnected)return;
-    switch(e.code){case'Space':e.preventDefault();toggle();break;case'ArrowLeft':sk(-10);break;case'ArrowRight':sk(10);break;case'KeyF':fs.click();break;case'KeyM':video.muted=!video.muted;break}
+    switch(e.code){case'Space':e.preventDefault();togglePlay();break;case'ArrowLeft':sk(-10);break;case'ArrowRight':sk(10);break;case'KeyF':fs.click();break;case'KeyM':video.muted=!video.muted;break}
   });
 
   const sid=setInterval(()=>{if(video.duration)saveP(series.find(s=>s.telegramFileId)?.id||0,video.currentTime,video.duration)},5000);
   video.addEventListener('destroy',()=>clearInterval(sid));
 
-  upd();showC();
+  upd();showControls();
 }
 
 function renderWatch(id){
@@ -324,33 +368,37 @@ function renderWatch(id){
   if(!s){app.innerHTML='<div class="error">Not found</div>';return}
   const m=parseMeta(s.title);const prog=getP(id);
   const rt=prog&&prog.time>5&&prog.time<prog.dur-30?prog.time:null;
-  document.title=m.title;backBtn.classList.add('visible');
+  document.title=m.title;header.classList.add('hidden');document.body.style.paddingTop='0';
 
   app.innerHTML=`
     <div class="player-view paused">
-      <div class="player-nav">
-        <button class="back-btn" onclick="navigate('home')"><svg width="14" height="14" viewBox="0 0 24 24" style="fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg> Back to Browse</button>
-        <span class="brand" onclick="navigate('home')">StreamGram</span>
-      </div>
-      <div class="center-play"><svg viewBox="0 0 24 24"><polygon points="6,4 20,12 6,20"/></svg></div>
-      <div class="skip-ind"></div>
-      <video preload="metadata"><source src="/api/download/${id}" type="video/mp4"></video>
-      <div class="player-ctrl">
-        <div class="progress-wrap"><div class="fill"></div><div class="tooltip">0:00</div></div>
-        <div class="bar">
-          <div class="left">
-            <button class="rw-btn">${I.rw}</button>
-            <button class="play-btn">${I.play}</button>
-            <button class="ff-btn">${I.ff}</button>
-            <span class="time"><span class="curr">0:00</span> / <span class="tot">0:00</span></span>
-          </div>
-          <div class="right">
-            <button class="speed-btn">1×</button>
-            <input class="vol-slider" type="range" min="0" max="1" step="0.05" value="1">
-            <button class="fs-btn">${I.fs}</button>
+      <div class="player-overlay show">
+        <div class="player-nav">
+          <button class="back-btn" onclick="navigate('home')"><svg width="14" height="14" viewBox="0 0 24 24" style="fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg> Back to Browse</button>
+          <span class="brand" onclick="navigate('home')">StreamGram</span>
+        </div>
+        <div class="center-play"><svg viewBox="0 0 24 24"><polygon points="6,4 20,12 6,20"/></svg></div>
+        <div class="player-ctrl">
+          <div class="progress-wrap"><div class="fill"></div><div class="tooltip">0:00</div></div>
+          <div class="bar">
+            <div class="left">
+              <button class="rw-btn">${I.rw}</button>
+              <button class="play-btn">${I.play}</button>
+              <button class="ff-btn">${I.ff}</button>
+              <span class="time"><span class="curr">0:00</span> / <span class="tot">0:00</span></span>
+            </div>
+            <div class="right">
+              <button class="aspect-btn" id="aspectBtn">Fit</button>
+              <button class="speed-btn">1×</button>
+              <input class="vol-slider" type="range" min="0" max="1" step="0.05" value="1">
+              <button class="fs-btn">${I.fs}</button>
+            </div>
           </div>
         </div>
       </div>
+      <div class="skip-ind"></div>
+      <div class="toast" id="toast"></div>
+      <video preload="metadata"><source src="/api/download/${id}" type="video/mp4"></video>
     </div>
     <div class="player-details">
       ${rt?`<div class="resume-box"><span>Continue from <strong>${fmtTime(rt)}</strong>?</span><button class="btn-secondary" onclick="document.querySelector('.player-view video').currentTime=${rt};document.querySelector('.player-view video').play()">Resume</button><button class="btn-secondary" onclick="document.querySelector('.player-view video').play()">Start Over</button></div>`:''}

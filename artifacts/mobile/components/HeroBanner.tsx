@@ -12,7 +12,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Feather } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColors } from "@/hooks/useColors";
-import type { Series } from "@workspace/api-client-react";
+import type { Series } from "../lib/api-client";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 const HERO_HEIGHT = SCREEN_HEIGHT * 0.52;
